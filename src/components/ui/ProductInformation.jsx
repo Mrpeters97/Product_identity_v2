@@ -9,19 +9,19 @@ import AttributeBadge from './AttributeBadge'
 
 const INITIAL_PRODUCT_DATA = {
   productIdentifier: {
-    value: '123456ABC',
+    value: '',
     differsOn: 'variant-channel',
   },
   name: {
-    value: 'Samsung Galaxy Watch 13',
+    value: '',
     differsOn: 'variant-channel',
   },
   ean: {
-    value: '12345ABCDE',
+    value: '',
     differsOn: 'channel-local',
   },
   brand: {
-    value: 'Samsung',
+    value: '',
     differsOn: null,
   },
 }
@@ -76,10 +76,11 @@ export default function ProductInformation() {
                 type="text"
                 value={data.productIdentifier.value}
                 onChange={(e) => handleFieldChange('productIdentifier', e.target.value)}
+                placeholder="Enter unique product identification code"
                 className="flex-1"
                 required
               />
-              <CopyAction field="productIdentifier" onCopyConfirm={handleCopyConfirm} />
+              <CopyAction field="productIdentifier" onCopyConfirm={handleCopyConfirm} disabled={!data.productIdentifier.value} />
               <div className="h-10 border-l border-[#E4E4E7]"></div>
               <AttributeBadge differsOn={data.productIdentifier.differsOn} diffLabels={DIFF_LABELS} />
             </FormRow>
@@ -89,10 +90,11 @@ export default function ProductInformation() {
                 type="text"
                 value={data.name.value}
                 onChange={(e) => handleFieldChange('name', e.target.value)}
+                placeholder="Enter unique product name"
                 className="flex-1"
                 required
               />
-              <CopyAction field="name" onCopyConfirm={handleCopyConfirm} />
+              <CopyAction field="name" onCopyConfirm={handleCopyConfirm} disabled={!data.name.value} />
               <div className="h-10 border-l border-[#E4E4E7]"></div>
               <AttributeBadge differsOn={data.name.differsOn} diffLabels={DIFF_LABELS} />
             </FormRow>
@@ -103,6 +105,7 @@ export default function ProductInformation() {
                   type="text"
                   value={data.ean.value}
                   onChange={(e) => handleFieldChange('ean', e.target.value)}
+                  placeholder="1234567890"
                   className="w-full"
                   required
                 />
@@ -111,7 +114,7 @@ export default function ProductInformation() {
                 </Button>
               </div>
               <div className="flex items-center self-start gap-[var(--Gap-2,8px)]">
-                <CopyAction field="ean" onCopyConfirm={handleCopyConfirm} />
+                <CopyAction field="ean" onCopyConfirm={handleCopyConfirm} disabled={!data.ean.value} />
                 <div className="h-10 border-l border-[#E4E4E7]"></div>
                 <AttributeBadge differsOn={data.ean.differsOn} diffLabels={DIFF_LABELS} />
               </div>
@@ -121,9 +124,10 @@ export default function ProductInformation() {
               <select
                 value={data.brand.value}
                 onChange={(e) => handleFieldChange('brand', e.target.value)}
-                className="flex-1 h-10 pl-3 pr-10 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-[var(--border-radius-md,6px)] border border-solid border-[var(--base-input,#E4E4E7)] bg-[var(--base-background,#FFF)]"
+                className="flex-1 h-10 pl-3 pr-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-[var(--border-radius-md,6px)] border border-solid border-[var(--base-input,#E4E4E7)] bg-[var(--base-background,#FFF)]"
                 required
               >
+                <option value="" disabled>Choose brand</option>
                 <option value="Samsung">Samsung</option>
                 <option value="Apple">Apple</option>
                 <option value="Google">Google</option>
