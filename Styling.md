@@ -98,3 +98,25 @@ De animaties en de tijdsbalk worden direct in de component gedefinieerd met behu
   }
 }
 ```
+
+### Text large/leading-normal
+
+color: var(--base-foreground, #18181B);
+
+/* text large/leading-normal/semibold */
+font-family: var(--typography-font-family-font-sans, Inter);
+font-size: var(--typography-base-sizes-large-font-size, 18px);
+font-style: normal;
+font-weight: var(--font-weight-semibold, 600);
+line-height: var(--typography-base-sizes-large-line-height, 28px); /* 155.556% */
+
+### Text small/leadingnormal
+
+color: var(--base-muted-foreground, #71717A);
+
+/* text small/leading-normal/regular */
+font-family: var(--typography-font-family-font-sans, Inter);
+font-size: var(--typography-base-sizes-small-font-size, 14px);
+font-style: normal;
+font-weight: var(--font-weight-normal, 400);
+line-height: var(--typography-base-sizes-small-line-height, 20px); /* 142.857% */
