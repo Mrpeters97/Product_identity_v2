@@ -1,7 +1,7 @@
 import { Info } from 'lucide-react'
-import { Button } from './ui/button'
-import { VerticalDotsIcon } from './ui/Icons'
-import { useScroll } from '../context/ScrollContext'
+import { Button } from '../ui/button'
+import { VerticalDotsIcon } from '../ui/Icons'
+import { useScroll } from '../../context/ScrollContext'
 
 export default function PageHeader() {
   const { scrollY } = useScroll()

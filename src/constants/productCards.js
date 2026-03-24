@@ -1,0 +1,276 @@
+// Product form schema
+export const PROVIDER_OPTIONS = [
+  { value: 'vodafone', label: 'Vodafone' },
+  { value: 'kpn', label: 'KPN' },
+  { value: 'tmobile', label: 'T-Mobile' },
+  { value: 'other', label: 'Other' },
+]
+
+export const PRODUCT_CARDS = [
+  {
+    id: 'product-information',
+    title: 'Product information',
+    fields: [
+      {
+        key: 'name',
+        label: 'Name',
+        required: true,
+        type: 'text',
+        differsOn: 'variant-language',
+        placeholder: 'Unique product variant name',
+      },
+      {
+        key: 'productIdentifier',
+        label: 'Product Identifier',
+        required: false,
+        type: 'text',
+        differsOn: 'variant',
+        placeholder: 'Unique product identification code',
+      },
+      {
+        key: 'provider',
+        label: 'Provider',
+        required: false,
+        type: 'select',
+        options: PROVIDER_OPTIONS,
+        placeholder: 'Choose provider',
+      },
+      {
+        key: 'validPeriod',
+        label: 'Valid period',
+        required: false,
+        type: 'daterange',
+        fields: ['validFrom', 'validUntil'],
+      },
+    ],
+  },
+  {
+    id: 'compatibility',
+    title: 'Compatibility',
+    fields: [
+      {
+        key: 'customerSegment',
+        label: 'Customer segment',
+        required: true,
+        type: 'select',
+        options: [
+          { value: 'business', label: 'Business' },
+          { value: 'consumer', label: 'Consumer' },
+          { value: 'both', label: 'Both' },
+        ],
+        placeholder: 'Select segment',
+      },
+      {
+        key: 'activationType',
+        label: 'Activation type',
+        required: true,
+        type: 'select',
+        options: [
+          { value: 'new-number', label: 'New number' },
+          { value: 'number-porting', label: 'Number porting' },
+          { value: 'renewal', label: 'Renewal' },
+        ],
+        placeholder: 'Select type',
+      },
+      {
+        key: 'simType',
+        label: 'SIM type',
+        required: true,
+        type: 'select',
+        options: [
+          { value: 'physical-sim', label: 'Physical SIM' },
+          { value: 'esim', label: 'eSIM' },
+        ],
+        placeholder: 'Select type',
+      },
+      {
+        key: 'bundleType',
+        label: 'Bundle type',
+        required: true,
+        type: 'select',
+        options: [
+          { value: 'sim-only', label: 'SIM only' },
+          { value: 'sim-hardware', label: 'SIM + Hardware' },
+        ],
+        placeholder: 'Select type',
+      },
+    ],
+  },
+  {
+    id: 'monthly-costs',
+    title: 'Monthly costs',
+    fields: [
+      {
+        key: 'regularMonthlyCost',
+        label: 'Regular monthly cost',
+        required: true,
+        type: 'price',
+        differsOn: 'variant',
+        placeholder: 'Type price',
+      },
+      {
+        key: 'regularSetupCost',
+        label: 'Regular setup cost',
+        required: true,
+        type: 'price',
+        placeholder: 'Type price',
+      },
+      {
+        key: 'promotionSetupCost',
+        label: 'Promotion setup costs',
+        required: false,
+        type: 'price',
+        placeholder: 'Type price',
+      },
+      {
+        key: 'firstPromotionPrice',
+        label: 'First promotion price',
+        required: false,
+        type: 'price',
+        differsOn: 'variant',
+        placeholder: 'Type price',
+      },
+      {
+        key: 'firstPromotionPeriod',
+        label: 'First promotion period',
+        required: false,
+        type: 'text',
+        differsOn: 'variant',
+        placeholder: 'Type amount of months',
+      },
+      {
+        key: 'secondPromotionPrice',
+        label: 'Second promotion price',
+        required: false,
+        type: 'price',
+        differsOn: 'variant',
+        placeholder: 'Type price',
+      },
+    ],
+  },
+  {
+    id: 'bundle',
+    title: 'Bundle',
+    fields: [
+      {
+        key: 'postUsageBehaviorData',
+        label: 'Post usage behaviour data',
+        required: false,
+        type: 'select',
+        differsOn: 'variant',
+        options: [
+          { value: 'stop', label: 'Stop' },
+          { value: 'throttle', label: 'Throttle' },
+          { value: 'continue', label: 'Continue charging' },
+        ],
+        placeholder: 'Select type',
+      },
+    ],
+  },
+  {
+    id: 'network',
+    title: 'Network',
+    fields: [
+      {
+        key: 'maxUploadSpeed',
+        label: 'Maximum upload speed',
+        required: false,
+        type: 'speed',
+        differsOn: 'variant',
+        placeholder: 'Type speed',
+      },
+      {
+        key: 'maxDownloadSpeed',
+        label: 'Maximum download speed',
+        required: false,
+        type: 'speed',
+        differsOn: 'variant',
+        placeholder: 'Type speed',
+      },
+      {
+        key: 'networkFrequencyAccess',
+        label: 'Network frequency access',
+        required: false,
+        type: 'select',
+        options: [
+          { value: '4g', label: '4G' },
+          { value: '5g', label: '5G' },
+          { value: 'both', label: 'Both' },
+        ],
+        placeholder: 'Select frequency',
+      },
+      {
+        key: 'networkOperator',
+        label: 'Network operator',
+        required: false,
+        type: 'select',
+        options: [
+          { value: 'kpn', label: 'KPN' },
+          { value: 'vodafone-nl', label: 'Vodafone NL' },
+          { value: 'odido', label: 'Odido' },
+          { value: 'telekom', label: 'Telekom' },
+          { value: 'vodafone-de', label: 'Vodafone DE' },
+          { value: 'telefonica', label: 'Telefónica' },
+        ],
+        placeholder: 'Select operator',
+      },
+    ],
+  },
+  {
+    id: 'pairing-codes',
+    title: 'Pairing codes',
+    fields: [
+      {
+        key: 'pairingCode',
+        label: 'Pairing code',
+        required: false,
+        type: 'text',
+        differsOn: 'variant',
+        placeholder: 'Type pairing code',
+      },
+    ],
+  },
+  {
+    id: 'loyalty-discounts',
+    title: 'Loyalty discounts',
+    fields: [
+      {
+        key: 'linkedRegularSubscription',
+        label: 'Linked regular subscription',
+        required: false,
+        type: 'price',
+        differsOn: 'variant',
+        placeholder: 'Type price',
+      },
+      {
+        key: 'loyaltyBenefits',
+        label: 'Loyalty benefits',
+        required: false,
+        type: 'text',
+        differsOn: 'variant',
+        placeholder: 'Type loyalty benefits',
+      },
+      {
+        key: 'loyaltyBenefitsRequirements',
+        label: 'Loyalty benefits requirements',
+        required: false,
+        type: 'select',
+        options: [
+          { value: 'none', label: 'None' },
+          { value: 'contractTerm', label: 'Contract term' },
+          { value: 'minimumSpend', label: 'Minimum spend' },
+        ],
+        placeholder: 'Select requirements',
+      },
+    ],
+  },
+]
+
+export const DIFF_LABELS = {
+  'variant-channel-language': 'This attributes differs on variant, channel, and language',
+  'variant-channel': 'This attribute differs on variant and channel',
+  'variant-language': 'This attribute differs on variant and language',
+  'variant': 'This attribute differs on variant',
+  'channel': 'This attribute differs on channel',
+  'channel-local': 'This attribute differs on channel and is local',
+}

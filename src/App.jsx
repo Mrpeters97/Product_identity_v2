@@ -1,8 +1,8 @@
 import VariantSelector from './components/VariantSelector'
 import ContentCards from './components/ui/ContentCards'
-import PageHeader from './components/PageHeader'
-import Sidebar from './components/Sidebar'
-import RightAnchorMenu from './components/RightAnchorMenu'
+import PageHeader from './components/layout/PageHeader'
+import Sidebar from './components/layout/Sidebar'
+import RightAnchorMenu from './components/layout/RightAnchorMenu'
 import { ProductProvider } from './context/ProductContext2'
 import { ScrollProvider } from './context/ScrollContext'
 
