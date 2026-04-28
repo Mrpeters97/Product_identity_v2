@@ -6,6 +6,7 @@ import { Button } from './ui/button'
 import {
   VARIANT_OPTIONS,
   LANGUAGE_OPTIONS,
+  CHANNEL_OPTIONS,
   STICKY_CONFIG,
   LABEL_STYLE,
   HEADING_STYLE,
@@ -15,7 +16,7 @@ import {
 } from '../constants/selectorConfig'
 
 export default function VariantSelector() {
-  const { variant, handleVariantChange, language, handleLanguageChange } = useProduct()
+  const { variant, handleVariantChange, language, handleLanguageChange, channel, handleChannelChange, activeTab } = useProduct()
   const { scrollY } = useScroll()
   const [selectorWidth, setSelectorWidth] = useState(null)
   const containerRef = useRef(null)
@@ -78,10 +79,9 @@ export default function VariantSelector() {
             gap: '24px',
             position: isSticky ? 'fixed' : 'relative',
             top: isSticky ? `${STICKY_CONFIG.stickyTop}px` : 'auto',
-            left: isSticky ? '288px' : 'auto',
-            right: isSticky ? '0' : 'auto',
+            left: isSticky ? '280px' : 'auto',
+            right: 'auto',
             width: isSticky && selectorWidth ? `${selectorWidth}px` : 'auto',
-            marginRight: isSticky ? '32px' : 'auto',
             zIndex: isSticky ? STICKY_CONFIG.zIndex : 1000,
             boxShadow: isSticky ? '0 4px 4px 0 rgba(0, 0, 0, 0.10)' : 'none',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -99,6 +99,23 @@ export default function VariantSelector() {
           </div>
 
           <div style={DIVIDER_STYLE} />
+
+          {activeTab === 'channel-specific' && (
+            <>
+              <div className="flex-0 flex flex-col gap-2" style={{ minWidth: '180px' }}>
+                <label style={LABEL_STYLE}>Channel</label>
+                <Combobox
+                  options={CHANNEL_OPTIONS}
+                  value={channel}
+                  onValueChange={handleChannelChange}
+                  placeholder="Belsimpel.nl"
+                  className="bg-white border-gray-200 h-10 shadow-none"
+                />
+              </div>
+
+              <div style={DIVIDER_STYLE} />
+            </>
+          )}
 
           <div className="flex-0 flex flex-col gap-2" style={{ minWidth: '180px' }}>
             <label style={LABEL_STYLE}>Language</label>

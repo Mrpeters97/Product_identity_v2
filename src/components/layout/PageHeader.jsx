@@ -2,21 +2,23 @@ import { Info } from 'lucide-react'
 import { Button } from '../ui/button'
 import { VerticalDotsIcon } from '../ui/Icons'
 import { useScroll } from '../../context/ScrollContext'
+import { useProduct } from '../../context/ProductContext2'
 
 export default function PageHeader() {
   const { scrollY } = useScroll()
+  const { activeTab, setActiveTab } = useProduct()
 
   // Animation progress: 0 (no scroll) to 1 (>= 60px scroll)
   const progress = Math.min(scrollY / 60, 1)
 
   return (
-    <div 
+    <div
       className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 flex flex-col items-start z-30 self-stretch"
       style={{
         fontFamily: 'var(--typography-font-family-font-sans, Inter)',
         paddingRight: '24px',
         paddingLeft: '24px',
-        paddingBottom: `${16 + 8 * (1 - progress)}px`, // 24px → 16px
+        paddingBottom: '0',
         paddingTop: `${16 + 8 * (1 - progress)}px`, // 24px → 16px
         gap: '16px',
         transition: 'padding 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -48,7 +50,7 @@ export default function PageHeader() {
         <span className="text-gray-400">&rsaquo;</span>
         <span style={{ color: 'var(--base-muted-foreground, #71717A)' }}>All products</span>
         <span className="text-gray-400">&rsaquo;</span>
-        <span style={{ color: 'var(--base-muted-foreground, #71717A)' }}>KPN Data Only</span>
+        <span style={{ color: 'var(--base-muted-foreground, #71717A)' }}>Samsung Galaxy Watch 13</span>
         <span className="text-gray-400">&rsaquo;</span>
         <span style={{ color: 'var(--base-foreground, #18181B)' }}>Edit product</span>
       </div>
@@ -74,7 +76,7 @@ export default function PageHeader() {
             letterSpacing: 'var(--typography-typography-components-h3-letter-spacing, -0.4px)',
             margin: 0,
           }}>
-            KPN Data Only
+            Samsung Galaxy Watch 13
           </h1>
 
           {/* Draft Badge */}
@@ -124,6 +126,53 @@ export default function PageHeader() {
             <VerticalDotsIcon />
           </Button>
         </div>
+      </div>
+
+      {/* Tab Structure */}
+      <div
+        className="w-full flex items-center"
+        style={{
+          display: 'flex',
+          paddingTop: '0',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 'var(--Gap-2, 8px)',
+        }}
+      >
+        <button
+          onClick={() => setActiveTab('default')}
+          style={{
+            borderRadius: '6px 6px 0 0',
+            border: '1px solid #E4E4E7',
+            background: activeTab === 'default' ? '#FAFAFA' : '#FFF',
+            padding: '12px 16px',
+            fontSize: '14px',
+            fontWeight: activeTab === 'default' ? '600' : '500',
+            color: 'var(--base-foreground, #18181B)',
+            cursor: 'pointer',
+            fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+            transition: 'background 0.2s ease, font-weight 0.2s ease',
+          }}
+        >
+          Default settings
+        </button>
+        <button
+          onClick={() => setActiveTab('channel-specific')}
+          style={{
+            borderRadius: '6px 6px 0 0',
+            border: '1px solid #E4E4E7',
+            background: activeTab === 'channel-specific' ? '#FAFAFA' : '#FFF',
+            padding: '12px 16px',
+            fontSize: '14px',
+            fontWeight: activeTab === 'channel-specific' ? '600' : '500',
+            color: 'var(--base-foreground, #18181B)',
+            cursor: 'pointer',
+            fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+            transition: 'background 0.2s ease, font-weight 0.2s ease',
+          }}
+        >
+          Channel specific settings
+        </button>
       </div>
     </div>
   )

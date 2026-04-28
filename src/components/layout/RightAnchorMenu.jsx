@@ -5,13 +5,14 @@ export default function RightAnchorMenu() {
   const menuRef = useRef(null)
 
   const sections = [
+    { id: 'product-information', label: 'Product information' },
     { id: 'product-specifications', label: 'Product specifications' },
-    { id: 'compatibility', label: 'Compatibility' },
-    { id: 'monthly-costs', label: 'Monthly costs' },
-    { id: 'bundle', label: 'Bundle' },
-    { id: 'network', label: 'Network' },
-    { id: 'pairing-codes', label: 'Pairing codes' },
-    { id: 'loyalty-discounts', label: 'Loyalty discounts' },
+    { id: 'general-features', label: 'General features' },
+    { id: 'technical-specs', label: 'Technical specifications' },
+    { id: 'connectivity', label: 'Connectivity' },
+    { id: 'battery-performance', label: 'Battery & Performance' },
+    { id: 'images-media', label: 'Images and Media' },
+    { id: 'video-reviews', label: 'Video reviews' },
   ]
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export default function RightAnchorMenu() {
         alignItems: 'flex-start',
         gap: '16px',
         position: 'sticky',
-        top: '148px',
+        top: '200px',
       }}
     >
       <span style={{

@@ -3,7 +3,7 @@ import { Search, ChevronDown } from 'lucide-react'
 import { cn } from "../../lib/utils"
 
 const Combobox = React.forwardRef(
-  ({ className, options = [], value, onValueChange, placeholder, groupedOptions, renderOption, ...props }, ref) => {
+  ({ className, options = [], value, onValueChange, placeholder, groupedOptions, renderOption, disabled = false, ...props }, ref) => {
     const [open, setOpen] = React.useState(false)
     const [search, setSearch] = React.useState('')
     const containerRef = React.useRef(null)
@@ -49,17 +49,19 @@ const Combobox = React.forwardRef(
     return (
       <div ref={containerRef} className="relative w-full">
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => !disabled && setOpen(!open)}
+          disabled={disabled}
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            disabled && "bg-[var(--base-muted, #F4F4F5)] border-[var(--base-input, #E4E4E7)] text-[var(--base-muted-foreground, #71717A)]",
             className
           )}
         >
-          <span className="text-foreground">{selectedLabel}</span>
-          <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", open && "rotate-180")} />
+          <span className={cn("text-foreground", disabled && "text-[var(--base-muted-foreground, #71717A)]")}>{selectedLabel}</span>
+          <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", open && !disabled && "rotate-180")} />
         </button>
 
-        {open && (
+        {open && !disabled && (
           <div className="absolute top-full left-0 z-[9999] mt-1 rounded-[var(--border-radius-lg,8px)] border border-[var(--base-border,#E4E4E7)] bg-[var(--base-background,#FFF)] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full">
             {/* Search Input */}
             <div className="border-b border-input p-2">

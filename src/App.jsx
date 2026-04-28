@@ -18,16 +18,17 @@ function App() {
             className="grid w-full"
             style={{
               marginLeft: '256px',
-              marginTop: '132px',
-              paddingLeft: '32px',
-              paddingRight: '32px',
+              marginTop: '180px',
+              paddingTop: 'var(--Gap-6, 24px)',
+              paddingRight: 'var(--Gap-6, 24px)',
+              paddingBottom: 'var(--Gap-0, 0)',
+              paddingLeft: 'var(--Gap-6, 24px)',
               gridTemplateColumns: 'minmax(0, 4fr) minmax(220px, 1fr)',
               gap: 'clamp(32px, 3.5vw, 36px)',
               width: '100%',
-              paddingBottom: '128px',
             }}
           >
-            <div className="flex flex-col items-center w-full max-w-full" style={{ minWidth: 0, gap: '28px' }}>
+            <div className="flex flex-col items-center w-full max-w-full" style={{ minWidth: 0, gap: '28px', paddingBottom: '128px' }}>
               <VariantSelector />
               <main className="w-full">
                 <ContentCards />

@@ -17,7 +17,7 @@ const CopyIcon = () => (
   </svg>
 );
 
-export default function CopyAction({ field, onCopyConfirm, disabled }) {
+export default function CopyAction({ field, onCopyConfirm, disabled, icon }) {
   const [isOpen, setIsOpen] = useState(false);
   const copyOption = 'variants'; // Only option: All variants
 
@@ -29,9 +29,9 @@ export default function CopyAction({ field, onCopyConfirm, disabled }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="icon" 
+        <Button
+          variant="outline"
+          size="icon"
           disabled={disabled}
           style={disabled ? {
             borderRadius: 'var(--border-radius-md, 6px)',
@@ -40,7 +40,7 @@ export default function CopyAction({ field, onCopyConfirm, disabled }) {
             pointerEvents: 'none',
           } : undefined}
         >
-          <CopyIcon />
+          {icon || <CopyIcon />}
         </Button>
       </DialogTrigger>
       <DialogContent>

@@ -48,30 +48,34 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
   }
 
   const handleOpenChange = (newOpen) => {
+    if (newOpen === false) return
     setIsOpen(newOpen)
-    if (!newOpen) {
-      setTranslations({})
-    }
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          disabled={disabled}
-          style={disabled ? {
-            borderRadius: 'var(--border-radius-md, 6px)',
-            border: '1px solid var(--base-input, #E4E4E7)',
-            opacity: 'var(--opacity-opacity-50, 0.5)',
-            pointerEvents: 'none',
-          } : undefined}
-        >
-          <TranslateIcon />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="[&>[data-radix-dialog-close]]:hidden">
+    <>
+      <style>{`
+        [data-translate-modal] [data-radix-dialog-close] {
+          display: none !important;
+        }
+      `}</style>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={disabled}
+            style={disabled ? {
+              borderRadius: 'var(--border-radius-md, 6px)',
+              border: '1px solid var(--base-input, #E4E4E7)',
+              opacity: 'var(--opacity-opacity-50, 0.5)',
+              pointerEvents: 'none',
+            } : undefined}
+          >
+            <TranslateIcon />
+          </Button>
+        </DialogTrigger>
+        <DialogContent data-translate-modal>
         <DialogHeader>
           <DialogTitle>Translate value</DialogTitle>
           <DialogDescription>
@@ -124,6 +128,7 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   )
 }
