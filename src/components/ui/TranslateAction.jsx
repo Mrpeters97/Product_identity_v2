@@ -25,6 +25,9 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
 
   const otherLanguages = SUPPORTED_LANGUAGES.filter(lang => lang !== currentLanguage)
 
+  const isEnglishFilled = currentLanguage === 'English' || (translations['English'] && translations['English'].trim() !== '')
+  const canConfirm = isEnglishFilled
+
   const handleTranslationChange = (lang, value) => {
     setTranslations(prev => ({
       ...prev,
@@ -33,15 +36,15 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
   }
 
   const handleConfirm = () => {
+    if (!canConfirm) return
+
     const filledTranslations = Object.fromEntries(
       Object.entries(translations).filter(([_, value]) => value.trim() !== '')
     )
 
-    if (Object.keys(filledTranslations).length > 0) {
-      onTranslateConfirm(field, filledTranslations)
-      setIsOpen(false)
-      setTranslations({})
-    }
+    onTranslateConfirm(field, filledTranslations)
+    setIsOpen(false)
+    setTranslations({})
   }
 
   const handleOpenChange = (newOpen) => {
@@ -68,7 +71,7 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
           <TranslateIcon />
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="[&>[data-radix-dialog-close]]:hidden">
         <DialogHeader>
           <DialogTitle>Translate value</DialogTitle>
           <DialogDescription>
@@ -79,7 +82,7 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
         <div className="space-y-3 my-4">
           {/* Current language (readonly) */}
           <div className="space-y-1">
-            <label className="text-sm font-medium">{currentLanguage}*</label>
+            <label className="text-sm font-medium">{currentLanguage}{currentLanguage === 'English' ? '*' : ''}</label>
             <Input
               value={currentValue}
               readOnly
@@ -90,7 +93,7 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
           {/* Other languages */}
           {otherLanguages.map(lang => (
             <div key={lang} className="space-y-1">
-              <label className="text-sm font-medium">{lang}</label>
+              <label className="text-sm font-medium">{lang}{lang === 'English' ? '*' : ''}</label>
               <Input
                 placeholder="Translation"
                 value={translations[lang] || ''}
@@ -105,7 +108,13 @@ export default function TranslateAction({ field, currentValue, currentLanguage, 
           <Button variant="outline" onClick={() => setIsOpen(false)}>Close</Button>
           <Button
             onClick={handleConfirm}
-            className="gap-[var(--Gap-2,8px)] rounded-[var(--border-radius-md,6px)] bg-[var(--base-foreground,#18181B)] px-[var(--Gap-4,16px)] py-[var(--Gap-2-5,10px)] text-[#FAFAFA] hover:bg-[var(--base-foreground,#18181B)]/90"
+            disabled={!canConfirm}
+            style={!canConfirm ? {
+              borderRadius: 'var(--border-radius-md, 6px)',
+              opacity: 'var(--opacity-opacity-50, 0.5)',
+              background: 'var(--base-foreground, #18181B)',
+            } : undefined}
+            className="gap-[var(--Gap-2,8px)] rounded-[var(--border-radius-md,6px)] bg-[var(--base-foreground,#18181B)] px-[var(--Gap-4,16px)] py-[var(--Gap-2-5,10px)] text-[#FAFAFA] hover:bg-[var(--base-foreground,#18181B)]/90 disabled:hover:bg-[var(--base-foreground,#18181B)]"
           >
             Translate value
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 15 14" fill="none">
