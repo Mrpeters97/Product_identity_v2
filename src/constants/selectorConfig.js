@@ -13,10 +13,39 @@ export const LANGUAGE_OPTIONS = [
   { label: 'Dutch', value: 'Dutch' },
 ]
 
+export const CHANNEL_OPTIONS = [
+  { label: 'Belsimpel.nl', value: 'Belsimpel.nl' },
+  { label: 'Gomibo.de', value: 'Gomibo.de' },
+  { label: 'Gomibo.pl', value: 'Gomibo.pl' },
+  { label: 'Gomibo.hu', value: 'Gomibo.hu' },
+  { label: 'Gomibo.be', value: 'Gomibo.be' },
+  { label: 'Gomibo.ie', value: 'Gomibo.ie' },
+  { label: 'Gomibo.pt', value: 'Gomibo.pt' },
+  { label: 'Gomibo.bg', value: 'Gomibo.bg' },
+  { label: 'Gomibo.it', value: 'Gomibo.it' },
+  { label: 'Gomibo.ro', value: 'Gomibo.ro' },
+  { label: 'Gomibo.cy', value: 'Gomibo.cy' },
+  { label: 'Gomibo.hr', value: 'Gomibo.hr' },
+  { label: 'Gomibo.si', value: 'Gomibo.si' },
+  { label: 'Gomibo.dk', value: 'Gomibo.dk' },
+  { label: 'Gomibo.lv', value: 'Gomibo.lv' },
+  { label: 'Gomibo.sk', value: 'Gomibo.sk' },
+  { label: 'Gomibo.es', value: 'Gomibo.es' },
+  { label: 'Gomibo.ee', value: 'Gomibo.ee' },
+  { label: 'Gomibo.lu', value: 'Gomibo.lu' },
+  { label: 'Gomibo.cz', value: 'Gomibo.cz' },
+  { label: 'Gomibo.fi', value: 'Gomibo.fi' },
+  { label: 'Gomibo.mt', value: 'Gomibo.mt' },
+  { label: 'Gomibo.co.uk', value: 'Gomibo.co.uk' },
+  { label: 'Gomibo.fr', value: 'Gomibo.fr' },
+  { label: 'Gomibo.no', value: 'Gomibo.no' },
+  { label: 'Gomibo.ch', value: 'Gomibo.ch' },
+]
+
 // Sticky positioning constants
 export const STICKY_CONFIG = {
   triggerScroll: 141, // px
-  stickyTop: 71, // px
+  stickyTop: 118, // px
   zIndex: 9997,
 }
 

@@ -3,73 +3,150 @@ import React, { createContext, useState, useCallback, useContext } from 'react'
 const ProductContext = createContext()
 
 const ARRAY_FIELDS = new Set(['ean'])
+export const SUPPORTED_LANGUAGES = ['English', 'German', 'Dutch', 'French', 'Italian']
+
+const VARIANT_MPC_SUFFIXES = {
+  'Monthly terminable - 1 GB': '01',
+  'Monthly terminable - Unlimited': '02',
+  '1 year terminable - 1 GB': '03',
+  '1 year terminable - Unlimited': '04',
+  '2 years terminable - 1 GB': '05',
+  '2 years terminable - Unlimited': '06',
+}
+
+const generateMPCIdentifier = (variant) => {
+  const suffix = VARIANT_MPC_SUFFIXES[variant] || '00'
+  return `ajhkdjhNN11__WW${suffix}`
+}
 
 export function ProductProvider({ children }) {
   // Variant Selector State
   const [variant, setVariant] = useState('Monthly terminable - 1 GB')
   const [channel, setChannel] = useState('Belsimpel.nl')
   const [language, setLanguage] = useState('English')
+  const [activeTab, setActiveTab] = useState('default') // 'default' or 'channel-specific'
   
   // Helper to generate variant-channel key
   const getVariantChannelKey = useCallback((v = variant, c = channel) => {
     return `${v}_${c}`
   }, [variant, channel])
 
+  // Helper to generate variant-channel-language key
+  const getVariantChannelLanguageKey = useCallback((v = variant, c = channel, l = language) => {
+    return `${v}_${c}_${l}`
+  }, [variant, channel, language])
+
   // Product Data State
   const [productData, setProductData] = useState({
+    // MPC Identifier
+    mpcIdentifier: { variantChannelValues: {}, differsOn: null },
+    
+    // Product Information
+    name: { variantChannelValues: {}, differsOn: 'variant-language' },
     productIdentifier: { variantChannelValues: {}, differsOn: 'variant' },
-    name: { variantChannelValues: {}, differsOn: 'variant-channel-language' },
-    provider: { variantChannelValues: {}, differsOn: null },
+    brand: { variantChannelValues: {}, differsOn: null },
     validFrom: { variantChannelValues: {}, differsOn: null },
     validUntil: { variantChannelValues: {}, differsOn: null },
-    ean: { variantChannelValues: {}, differsOn: 'channel' },
-    brand: { variantChannelValues: {}, differsOn: null },
-    customerSegment: { variantChannelValues: {}, differsOn: null },
-    activationType: { variantChannelValues: {}, differsOn: null },
-    simType: { variantChannelValues: {}, differsOn: null },
-    bundleType: { variantChannelValues: {}, differsOn: null },
-    regularMonthlyCost: { variantChannelValues: {}, differsOn: 'variant-channel' },
-    regularSetupCost: { variantChannelValues: {}, differsOn: 'variant-channel' },
-    promotionSetupCost: { variantChannelValues: {}, differsOn: null },
-    firstPromotionPrice: { variantChannelValues: {}, differsOn: null },
-    firstPromotionPeriod: { variantChannelValues: {}, differsOn: null },
-    secondPromotionPrice: { variantChannelValues: {}, differsOn: null },
-    postUsageBehaviorData: { variantChannelValues: {}, differsOn: null },
-    maxUploadSpeed: { variantChannelValues: {}, differsOn: null },
-    maxDownloadSpeed: { variantChannelValues: {}, differsOn: null },
-    networkFrequencyAccess: { variantChannelValues: {}, differsOn: null },
-    networkOperator: { variantChannelValues: {}, differsOn: null },
-    pairingCode: { variantChannelValues: {}, differsOn: null },
-    linkedRegularSubscription: { variantChannelValues: {}, differsOn: null },
-    loyaltyBenefits: { variantChannelValues: {}, differsOn: null },
-    loyaltyBenefitsRequirements: { variantChannelValues: {}, differsOn: null },
+    
+    // Product Specifications
+    model: { variantChannelValues: {}, differsOn: null },
+    color: { variantChannelValues: {}, differsOn: null },
+    materialCase: { variantChannelValues: {}, differsOn: null },
+    displayType: { variantChannelValues: {}, differsOn: null },
+    
+    // General Features
+    waterResistance: { variantChannelValues: {}, differsOn: null },
+    fitnessTracking: { variantChannelValues: {}, differsOn: null },
+    sleepTracking: { variantChannelValues: {}, differsOn: null },
+    healthMonitoring: { variantChannelValues: {}, differsOn: null },
+    
+    // Technical Specs
+    processor: { variantChannelValues: {}, differsOn: null },
+    ram: { variantChannelValues: {}, differsOn: null },
+    storage: { variantChannelValues: {}, differsOn: null },
+    operatingSystem: { variantChannelValues: {}, differsOn: null },
+    
+    // Connectivity
+    bluetooth: { variantChannelValues: {}, differsOn: null },
+    wifi: { variantChannelValues: {}, differsOn: null },
+    nfc: { variantChannelValues: {}, differsOn: null },
+    gps: { variantChannelValues: {}, differsOn: null },
+    
+    // Battery & Performance
+    batteryCapacity: { variantChannelValues: {}, differsOn: null },
+    batteryLife: { variantChannelValues: {}, differsOn: null },
+    chargingTime: { variantChannelValues: {}, differsOn: null },
+    weight: { variantChannelValues: {}, differsOn: null },
+    
+    // Images & Media
+    productImages: { variantChannelValues: {}, differsOn: null },
+    productVideo: { variantChannelValues: {}, differsOn: null },
+    
+    // Video Reviews
+    reviewVideo1: { variantChannelValues: {}, differsOn: null },
+    reviewVideo2: { variantChannelValues: {}, differsOn: null },
+    reviewNotes: { variantChannelValues: {}, differsOn: null },
   })
 
   const getProductFieldValue = useCallback((field) => {
-    const key = getVariantChannelKey()
+    // Special handling for mpcIdentifier
+    if (field === 'mpcIdentifier') {
+      return generateMPCIdentifier(variant)
+    }
+
     const fieldData = productData[field]
     if (!fieldData) return ''
-    
+
+    // Use language-keyed value for language-specific fields
+    const isLanguageField = fieldData.differsOn?.includes('language')
+    const key = isLanguageField ? getVariantChannelLanguageKey() : getVariantChannelKey()
+
     const value = fieldData.variantChannelValues[key]
     if (value === undefined || value === null) {
       return ARRAY_FIELDS.has(field) ? [''] : ''
     }
     return value
-  }, [productData, getVariantChannelKey])
+  }, [productData, getVariantChannelKey, getVariantChannelLanguageKey])
 
   const updateProductField = useCallback((field, value) => {
-    const key = getVariantChannelKey()
-    setProductData(prev => ({
-      ...prev,
-      [field]: {
-        ...prev[field],
-        variantChannelValues: {
-          ...prev[field].variantChannelValues,
-          [key]: value
+    setProductData(prev => {
+      const fieldData = prev[field] || { variantChannelValues: {}, differsOn: null }
+      const isLanguageField = fieldData.differsOn?.includes('language')
+      const key = isLanguageField ? getVariantChannelLanguageKey() : getVariantChannelKey()
+
+      return {
+        ...prev,
+        [field]: {
+          ...fieldData,
+          variantChannelValues: {
+            ...(fieldData?.variantChannelValues || {}),
+            [key]: value
+          }
         }
       }
-    }))
-  }, [getVariantChannelKey])
+    })
+  }, [getVariantChannelKey, getVariantChannelLanguageKey])
+
+  const updateProductFieldTranslations = useCallback((field, translations) => {
+    setProductData(prev => {
+      const fieldData = prev[field] || { variantChannelValues: {}, differsOn: null }
+      const updatedValues = { ...fieldData.variantChannelValues }
+
+      // Update each language translation
+      Object.entries(translations).forEach(([lang, value]) => {
+        const key = `${variant}_${channel}_${lang}`
+        updatedValues[key] = value
+      })
+
+      return {
+        ...prev,
+        [field]: {
+          ...fieldData,
+          variantChannelValues: updatedValues
+        }
+      }
+    })
+  }, [variant, channel])
 
   const markFieldAsCopied = useCallback((field, copyMode) => {
     const currentKey = getVariantChannelKey()
@@ -82,6 +159,10 @@ export function ProductProvider({ children }) {
     setProductData(prev => {
       const updated = { ...prev }
       const fieldData = updated[field]
+      
+      if (!fieldData) {
+        return prev
+      }
       
       if (!fieldData.variantChannelValues) {
         fieldData.variantChannelValues = {}
@@ -132,6 +213,8 @@ export function ProductProvider({ children }) {
     variant,
     channel,
     language,
+    activeTab,
+    setActiveTab,
     handleVariantChange,
     handleChannelChange,
     handleLanguageChange,
@@ -139,6 +222,7 @@ export function ProductProvider({ children }) {
     updateProductField,
     getProductFieldValue,
     markFieldAsCopied,
+    updateProductFieldTranslations,
   }
 
   return (
