@@ -1,19 +1,14 @@
 import { useEffect, useState, useRef } from 'react'
+import { PRODUCT_CARDS } from '../../constants/productCards'
 
 export default function RightAnchorMenu() {
-  const [activeSection, setActiveSection] = useState('product-specifications')
+  const [activeSection, setActiveSection] = useState(PRODUCT_CARDS.find(c => !c.hideTitle)?.id)
   const menuRef = useRef(null)
 
-  const sections = [
-    { id: 'product-information', label: 'Product information' },
-    { id: 'product-specifications', label: 'Product specifications' },
-    { id: 'general-features', label: 'General features' },
-    { id: 'technical-specs', label: 'Technical specifications' },
-    { id: 'connectivity', label: 'Connectivity' },
-    { id: 'battery-performance', label: 'Battery & Performance' },
-    { id: 'images-media', label: 'Images and Media' },
-    { id: 'video-reviews', label: 'Video reviews' },
-  ]
+  const sections = PRODUCT_CARDS.filter(card => !card.hideTitle).map(card => ({
+    id: card.id,
+    label: card.title
+  }))
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,14 +33,22 @@ export default function RightAnchorMenu() {
   const handleClick = (sectionId) => {
     const element = document.getElementById(sectionId)
     if (element) {
-      // Bepaal de offset van de pageheader (vast) + 32px extra
       const header = document.querySelector('.fixed.top-0')
       let offset = 32
       if (header) {
         offset += header.offsetHeight
       } else {
-        offset += 80 // fallback voor header hoogte
+        offset += 80
       }
+
+      // Add variant selector height if sticky
+      if (window.scrollY >= 164) {
+        const variantSelector = document.getElementById('variant-selector-sticky')
+        if (variantSelector && variantSelector.style.position === 'fixed') {
+          offset += variantSelector.offsetHeight
+        }
+      }
+
       const elementTop = element.getBoundingClientRect().top + window.scrollY
       const scrollTo = elementTop - offset
       window.scrollTo({ top: scrollTo, behavior: 'smooth' })

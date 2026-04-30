@@ -3,7 +3,7 @@ import { Search, ChevronDown } from 'lucide-react'
 import { cn } from "../../lib/utils"
 
 const Combobox = React.forwardRef(
-  ({ className, options = [], value, onValueChange, placeholder, groupedOptions, renderOption, disabled = false, ...props }, ref) => {
+  ({ className, options = [], value, onValueChange, placeholder, groupedOptions, renderOption, disabled = false, dropdownClassName, ...props }, ref) => {
     const [open, setOpen] = React.useState(false)
     const [search, setSearch] = React.useState('')
     const containerRef = React.useRef(null)
@@ -44,7 +44,10 @@ const Combobox = React.forwardRef(
     }
 
     const displayOptions = getDisplayOptions()
-    const selectedLabel = options.find(opt => opt.value === value)?.label || placeholder
+    const allItems = groupedOptions
+      ? groupedOptions.flatMap(g => g.items)
+      : options
+    const selectedLabel = allItems.find(opt => opt.value === value)?.label || placeholder
 
     return (
       <div ref={containerRef} className="relative w-full">
@@ -52,7 +55,7 @@ const Combobox = React.forwardRef(
           onClick={() => !disabled && setOpen(!open)}
           disabled={disabled}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             disabled && "bg-[var(--base-muted, #F4F4F5)] border-[var(--base-input, #E4E4E7)] text-[var(--base-muted-foreground, #71717A)]",
             className
           )}
@@ -62,7 +65,7 @@ const Combobox = React.forwardRef(
         </button>
 
         {open && !disabled && (
-          <div className="absolute top-full left-0 z-[9999] mt-1 rounded-[var(--border-radius-lg,8px)] border border-[var(--base-border,#E4E4E7)] bg-[var(--base-background,#FFF)] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full">
+          <div className={cn("absolute top-full left-0 z-[9999] mt-1 rounded-[var(--border-radius-lg,8px)] border border-[var(--base-border,#E4E4E7)] bg-[var(--base-background,#FFF)] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full", dropdownClassName)}>
             {/* Search Input */}
             <div className="border-b border-input p-2">
               <div className="relative">
@@ -92,17 +95,22 @@ const Combobox = React.forwardRef(
                     {group.items.map((item) => (
                       <button
                         key={item.value}
+                        disabled={item.disabled}
                         onClick={() => {
+                          if (item.disabled) return
                           onValueChange(item.value)
                           setOpen(false)
                           setSearch('')
                         }}
                         className={cn(
-                          "w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer flex items-center gap-2",
-                          value === item.value && "bg-accent text-accent-foreground"
+                          "w-full text-left px-3 py-2 text-sm flex items-center gap-2",
+                          item.disabled
+                            ? "opacity-40 cursor-not-allowed text-muted-foreground"
+                            : "hover:bg-accent hover:text-accent-foreground cursor-pointer",
+                          !item.disabled && value === item.value && "bg-accent text-accent-foreground"
                         )}
                       >
-                        {value === item.value && <span className="text-lg leading-none">✓</span>}
+                        {value === item.value && !item.disabled && <span className="text-lg leading-none">✓</span>}
                         {renderOption ? renderOption(item) : item.label}
                       </button>
                     ))}

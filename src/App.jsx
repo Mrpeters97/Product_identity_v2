@@ -1,4 +1,4 @@
-import VariantSelector from './components/VariantSelector'
+import VariantSelector from './components/ui/VariantSelector'
 import ContentCards from './components/ui/ContentCards'
 import PageHeader from './components/layout/PageHeader'
 import Sidebar from './components/layout/Sidebar'
@@ -15,17 +15,19 @@ function App() {
         <Sidebar />
         <div className="flex w-full min-h-screen bg-[#fcfcfc]" style={{ minHeight: '100vh' }}>
           <div
-            className="grid w-full"
+            className="grid"
             style={{
-              marginLeft: '256px',
+              marginLeft: 'max(calc(256px + 24px), calc(50vw - 832px))',
+              marginRight: 'auto',
               marginTop: '180px',
               paddingTop: 'var(--Gap-6, 24px)',
               paddingRight: 'var(--Gap-6, 24px)',
               paddingBottom: 'var(--Gap-0, 0)',
-              paddingLeft: 'var(--Gap-6, 24px)',
+              paddingLeft: 0,
               gridTemplateColumns: 'minmax(0, 4fr) minmax(220px, 1fr)',
               gap: 'clamp(32px, 3.5vw, 36px)',
               width: '100%',
+              maxWidth: '1920px',
             }}
           >
             <div className="flex flex-col items-center w-full max-w-full" style={{ minWidth: 0, gap: '28px', paddingBottom: '128px' }}>

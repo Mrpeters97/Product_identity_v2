@@ -1,17 +1,41 @@
 // Selector options
 export const VARIANT_OPTIONS = [
-  { label: 'Monthly terminable - 1 GB', value: 'Monthly terminable - 1 GB' },
-  { label: 'Monthly terminable - Unlimited', value: 'Monthly terminable - Unlimited' },
-  { label: '1 year terminable - 1 GB', value: '1 year terminable - 1 GB' },
-  { label: '1 year terminable - Unlimited', value: '1 year terminable - Unlimited' },
-  { label: '2 years terminable - 1 GB', value: '2 years terminable - 1 GB' },
-  { label: '2 years terminable - Unlimited', value: '2 years terminable - Unlimited' },
+  { label: '128 Black', value: '128 Black' },
+  { label: '256 Black', value: '256 Black' },
+  { label: '128 Blue', value: '128 Blue' },
+  { label: '256 Blue', value: '256 Blue' },
+  { label: '128 Orange', value: '128 Orange' },
+  { label: '256 Orange', value: '256 Orange' },
+  { label: '128 Pink', value: '128 Pink' },
 ]
 
 export const LANGUAGE_OPTIONS = [
   { label: 'English', value: 'English' },
   { label: 'Dutch', value: 'Dutch' },
+  { label: 'German', value: 'German' },
+  { label: 'French', value: 'French' },
+  { label: 'Italian', value: 'Italian' },
 ]
+
+export const TLD_LANGUAGE_MAP = {
+  nl:     ['English', 'Dutch', 'German'],
+  de:     ['English', 'German'],
+  at:     ['English', 'German'],
+  ch:     ['English', 'German', 'French'],
+  be:     ['English', 'Dutch', 'French', 'German'],
+  lu:     ['English', 'French', 'German'],
+  fr:     ['English', 'French'],
+  it:     ['English', 'Italian'],
+  'co.uk':['English'],
+}
+
+export function getAvailableLanguages(channel) {
+  const parts = channel?.split('.') ?? []
+  const tld = parts.length >= 3
+    ? parts.slice(1).join('.')
+    : parts[parts.length - 1]
+  return TLD_LANGUAGE_MAP[tld] ?? ['English']
+}
 
 export const CHANNEL_OPTIONS = [
   { label: 'Belsimpel.nl', value: 'Belsimpel.nl' },
@@ -44,7 +68,7 @@ export const CHANNEL_OPTIONS = [
 
 // Sticky positioning constants
 export const STICKY_CONFIG = {
-  triggerScroll: 141, // px
+  triggerScroll: 164, // px
   stickyTop: 118, // px
   zIndex: 9997,
 }

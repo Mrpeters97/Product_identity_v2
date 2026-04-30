@@ -2,16 +2,17 @@ import React, { createContext, useState, useCallback, useContext } from 'react'
 
 const ProductContext = createContext()
 
-const ARRAY_FIELDS = new Set(['ean'])
+const ARRAY_FIELDS = new Set(['ean', 'pros', 'cons', 'productImages', 'videoReviews', 'suitableForGender', 'boxContents'])
 export const SUPPORTED_LANGUAGES = ['English', 'German', 'Dutch', 'French', 'Italian']
 
 const VARIANT_MPC_SUFFIXES = {
-  'Monthly terminable - 1 GB': '01',
-  'Monthly terminable - Unlimited': '02',
-  '1 year terminable - 1 GB': '03',
-  '1 year terminable - Unlimited': '04',
-  '2 years terminable - 1 GB': '05',
-  '2 years terminable - Unlimited': '06',
+  '128 Black': '01',
+  '256 Black': '02',
+  '128 Blue': '03',
+  '256 Blue': '04',
+  '128 Orange': '05',
+  '256 Orange': '06',
+  '128 Pink': '07',
 }
 
 const generateMPCIdentifier = (variant) => {
@@ -21,71 +22,53 @@ const generateMPCIdentifier = (variant) => {
 
 export function ProductProvider({ children }) {
   // Variant Selector State
-  const [variant, setVariant] = useState('Monthly terminable - 1 GB')
+  const [variant, setVariant] = useState('128 Black')
   const [channel, setChannel] = useState('Belsimpel.nl')
   const [language, setLanguage] = useState('English')
   const [activeTab, setActiveTab] = useState('default') // 'default' or 'channel-specific'
+  const [attributeFilter, setAttributeFilter] = useState('all')
   
   // Helper to generate variant-channel key
   const getVariantChannelKey = useCallback((v = variant, c = channel) => {
-    return `${v}_${c}`
-  }, [variant, channel])
+    // In default tab, use empty channel; in channel-specific, use actual channel
+    const effectiveChannel = activeTab === 'default' ? '' : (c || channel)
+    return `${v}_${effectiveChannel}`
+  }, [variant, channel, activeTab])
 
   // Helper to generate variant-channel-language key
   const getVariantChannelLanguageKey = useCallback((v = variant, c = channel, l = language) => {
-    return `${v}_${c}_${l}`
-  }, [variant, channel, language])
+    // In default tab, use empty channel; in channel-specific, use actual channel
+    const effectiveChannel = activeTab === 'default' ? '' : (c || channel)
+    return `${v}_${effectiveChannel}_${l}`
+  }, [variant, channel, language, activeTab])
 
   // Product Data State
   const [productData, setProductData] = useState({
     // MPC Identifier
     mpcIdentifier: { variantChannelValues: {}, differsOn: null },
-    
+
     // Product Information
-    name: { variantChannelValues: {}, differsOn: 'variant-language' },
-    productIdentifier: { variantChannelValues: {}, differsOn: 'variant' },
+    variantName: { variantChannelValues: {}, differsOn: 'variant-channel-language' },
     brand: { variantChannelValues: {}, differsOn: null },
-    validFrom: { variantChannelValues: {}, differsOn: null },
-    validUntil: { variantChannelValues: {}, differsOn: null },
+    ean: { variantChannelValues: {}, differsOn: 'variant' },
     
     // Product Specifications
-    model: { variantChannelValues: {}, differsOn: null },
-    color: { variantChannelValues: {}, differsOn: null },
-    materialCase: { variantChannelValues: {}, differsOn: null },
-    displayType: { variantChannelValues: {}, differsOn: null },
+    returnOldProductFree: { variantChannelValues: {}, differsOn: null },
+    suitableForGender: { variantChannelValues: {}, differsOn: null },
+    recommendedRetailPrice: { variantChannelValues: {}, differsOn: 'variant-channel' },
+    pros: { variantChannelValues: {}, differsOn: 'variant-channel-language' },
+    cons: { variantChannelValues: {}, differsOn: 'variant-channel-language' },
+    
+    // Product Description
+    productDescription: { variantChannelValues: {}, differsOn: 'variant-channel-language' },
     
     // General Features
-    waterResistance: { variantChannelValues: {}, differsOn: null },
-    fitnessTracking: { variantChannelValues: {}, differsOn: null },
-    sleepTracking: { variantChannelValues: {}, differsOn: null },
-    healthMonitoring: { variantChannelValues: {}, differsOn: null },
+    boxContents: { variantChannelValues: {}, differsOn: null },
+    builtInMicrophone: { variantChannelValues: {}, differsOn: null },
     
-    // Technical Specs
-    processor: { variantChannelValues: {}, differsOn: null },
-    ram: { variantChannelValues: {}, differsOn: null },
-    storage: { variantChannelValues: {}, differsOn: null },
-    operatingSystem: { variantChannelValues: {}, differsOn: null },
-    
-    // Connectivity
-    bluetooth: { variantChannelValues: {}, differsOn: null },
-    wifi: { variantChannelValues: {}, differsOn: null },
-    nfc: { variantChannelValues: {}, differsOn: null },
-    gps: { variantChannelValues: {}, differsOn: null },
-    
-    // Battery & Performance
-    batteryCapacity: { variantChannelValues: {}, differsOn: null },
-    batteryLife: { variantChannelValues: {}, differsOn: null },
-    chargingTime: { variantChannelValues: {}, differsOn: null },
-    weight: { variantChannelValues: {}, differsOn: null },
-    
-    // Images & Media
+    // Images and Media
     productImages: { variantChannelValues: {}, differsOn: null },
-    productVideo: { variantChannelValues: {}, differsOn: null },
-    
-    // Video Reviews
-    reviewVideo1: { variantChannelValues: {}, differsOn: null },
-    reviewVideo2: { variantChannelValues: {}, differsOn: null },
-    reviewNotes: { variantChannelValues: {}, differsOn: null },
+    videoReviews: { variantChannelValues: {}, differsOn: null },
   })
 
   const getProductFieldValue = useCallback((field) => {
@@ -97,22 +80,61 @@ export function ProductProvider({ children }) {
     const fieldData = productData[field]
     if (!fieldData) return ''
 
+    // Global attributes use single shared key
+    const isGlobal = !fieldData.differsOn
+    if (isGlobal) {
+      const value = fieldData.variantChannelValues['_']
+      if (value === undefined || value === null) {
+        return ARRAY_FIELDS.has(field) ? [''] : ''
+      }
+      return value
+    }
+
     // Use language-keyed value for language-specific fields
     const isLanguageField = fieldData.differsOn?.includes('language')
-    const key = isLanguageField ? getVariantChannelLanguageKey() : getVariantChannelKey()
 
-    const value = fieldData.variantChannelValues[key]
+    // In default tab, use empty channel; in channel-specific, use actual channel
+    const effectiveChannel = activeTab === 'default' ? '' : channel
+    const key = isLanguageField ? `${variant}_${effectiveChannel}_${language}` : `${variant}_${effectiveChannel}`
+
+    let value = fieldData.variantChannelValues[key]
+
+    // Fallback to default value in channel-specific tab if not set
+    if ((value === undefined || value === null) && activeTab === 'channel-specific') {
+      const defaultKey = isLanguageField ? `${variant}__${language}` : `${variant}_`
+      value = fieldData.variantChannelValues[defaultKey]
+    }
+
     if (value === undefined || value === null) {
       return ARRAY_FIELDS.has(field) ? [''] : ''
     }
     return value
-  }, [productData, getVariantChannelKey, getVariantChannelLanguageKey])
+  }, [productData, variant, channel, language, activeTab])
 
   const updateProductField = useCallback((field, value) => {
     setProductData(prev => {
       const fieldData = prev[field] || { variantChannelValues: {}, differsOn: null }
+
+      // Global attributes use single shared key across all variants/channels/languages
+      const isGlobal = !fieldData.differsOn
+      const key = isGlobal ? '_' : null
+
+      if (isGlobal) {
+        return {
+          ...prev,
+          [field]: {
+            ...fieldData,
+            variantChannelValues: {
+              ...(fieldData?.variantChannelValues || {}),
+              [key]: value
+            }
+          }
+        }
+      }
+
       const isLanguageField = fieldData.differsOn?.includes('language')
-      const key = isLanguageField ? getVariantChannelLanguageKey() : getVariantChannelKey()
+      const effectiveChannel = activeTab === 'default' ? '' : channel
+      const variantChannelKey = isLanguageField ? `${variant}_${effectiveChannel}_${language}` : `${variant}_${effectiveChannel}`
 
       return {
         ...prev,
@@ -120,21 +142,27 @@ export function ProductProvider({ children }) {
           ...fieldData,
           variantChannelValues: {
             ...(fieldData?.variantChannelValues || {}),
-            [key]: value
+            [variantChannelKey]: value
           }
         }
       }
     })
-  }, [getVariantChannelKey, getVariantChannelLanguageKey])
+  }, [variant, channel, language, activeTab])
 
   const updateProductFieldTranslations = useCallback((field, translations) => {
     setProductData(prev => {
       const fieldData = prev[field] || { variantChannelValues: {}, differsOn: null }
+
+      // Global attributes don't have language variations
+      const isGlobal = !fieldData.differsOn
+      if (isGlobal) return prev
+
       const updatedValues = { ...fieldData.variantChannelValues }
 
       // Update each language translation
+      const effectiveChannel = activeTab === 'default' ? '' : channel
       Object.entries(translations).forEach(([lang, value]) => {
-        const key = `${variant}_${channel}_${lang}`
+        const key = `${variant}_${effectiveChannel}_${lang}`
         updatedValues[key] = value
       })
 
@@ -146,56 +174,78 @@ export function ProductProvider({ children }) {
         }
       }
     })
-  }, [variant, channel])
+  }, [variant, channel, activeTab])
 
   const markFieldAsCopied = useCallback((field, copyMode) => {
-    const currentKey = getVariantChannelKey()
-    const currentValue = productData[field]?.variantChannelValues?.[currentKey]
-    
-    if (currentValue === undefined || currentValue === null || currentValue === '' || (Array.isArray(currentValue) && currentValue.every(v => !v))) {
+    const fieldData = productData[field]
+    if (!fieldData) return
+
+    // Global attributes are already shared across all variants/channels, no need to copy
+    const isGlobal = !fieldData.differsOn
+    if (isGlobal) return
+
+    const isLanguageField = fieldData.differsOn?.includes('language')
+    const effectiveChannel = activeTab === 'default' ? '' : channel
+
+    const currentKey = isLanguageField ? `${variant}_${effectiveChannel}_${language}` : `${variant}_${effectiveChannel}`
+    const currentValue = fieldData.variantChannelValues?.[currentKey]
+
+    if (currentValue === undefined || currentValue === null) {
       return
     }
-    
+
     setProductData(prev => {
       const updated = { ...prev }
       const fieldData = updated[field]
-      
+
       if (!fieldData) {
         return prev
       }
-      
+
       if (!fieldData.variantChannelValues) {
         fieldData.variantChannelValues = {}
       }
-      
-      const VARIANTS = ['Monthly terminable - 1 GB', 'Monthly terminable - Unlimited', '1 year terminable - 1 GB', '1 year terminable - Unlimited', '2 years terminable - 1 GB', '2 years terminable - Unlimited']
+
+      const VARIANTS = ['128 Black', '256 Black', '128 Blue', '256 Blue', '128 Orange', '256 Orange', '128 Pink']
       const CHANNELS = ['Belsimpel.nl', 'Gomibo.hu', 'Gomibo.pl', 'Gomibo.be', 'Gomibo.ie', 'Gomibo.pt', 'Gomibo.bg', 'Gomibo.it', 'Gomibo.ro', 'Gomibo.cy', 'Gomibo.hr', 'Gomibo.si', 'Gomibo.dk', 'Gomibo.lv', 'Gomibo.sk', 'Gomibo.de', 'Gomibo.lt', 'Gomibo.es', 'Gomibo.ee', 'Gomibo.lu', 'Gomibo.cz', 'Gomibo.fi', 'Gomibo.mt', 'Gomibo.co.uk', 'Gomibo.fr', 'Gomibo.no', 'Gomibo.se', 'Gomibo.gr', 'Gomibo.at', 'Gomibo.ch']
-      
+
       const keysToUpdate = []
-      
+
       if (copyMode === 'variants') {
         VARIANTS.forEach(v => {
-          keysToUpdate.push(`${v}_${channel}`)
+          if (isLanguageField) {
+            keysToUpdate.push(`${v}_${effectiveChannel}_${language}`)
+          } else {
+            keysToUpdate.push(`${v}_${effectiveChannel}`)
+          }
         })
       } else if (copyMode === 'channels') {
         CHANNELS.forEach(c => {
-          keysToUpdate.push(`${variant}_${c}`)
+          if (isLanguageField) {
+            keysToUpdate.push(`${variant}_${c}_${language}`)
+          } else {
+            keysToUpdate.push(`${variant}_${c}`)
+          }
         })
       } else if (copyMode === 'all') {
         VARIANTS.forEach(v => {
           CHANNELS.forEach(c => {
-            keysToUpdate.push(`${v}_${c}`)
+            if (isLanguageField) {
+              keysToUpdate.push(`${v}_${c}_${language}`)
+            } else {
+              keysToUpdate.push(`${v}_${c}`)
+            }
           })
         })
       }
-      
+
       keysToUpdate.forEach(key => {
         fieldData.variantChannelValues[key] = currentValue
       })
-      
+
       return updated
     })
-  }, [getVariantChannelKey, variant, channel, productData])
+  }, [variant, channel, language, activeTab, productData])
 
   const handleVariantChange = useCallback((newVariant) => {
     setVariant(newVariant)
@@ -209,12 +259,90 @@ export function ProductProvider({ children }) {
     setLanguage(newLanguage)
   }, [])
 
+  const getDefaultValue = useCallback((field) => {
+    if (field === 'mpcIdentifier') {
+      return generateMPCIdentifier(variant)
+    }
+
+    const fieldData = productData[field]
+    if (!fieldData) return ''
+
+    // Global attributes use single shared key
+    const isGlobal = !fieldData.differsOn
+    if (isGlobal) {
+      const value = fieldData.variantChannelValues['_']
+      if (value === undefined || value === null) {
+        return ARRAY_FIELDS.has(field) ? [''] : ''
+      }
+      return value
+    }
+
+    const isLanguageField = fieldData.differsOn?.includes('language')
+    const defaultKey = isLanguageField ? `${variant}__${language}` : `${variant}_`
+
+    const value = fieldData.variantChannelValues[defaultKey]
+    if (value === undefined || value === null) {
+      return ARRAY_FIELDS.has(field) ? [''] : ''
+    }
+    return value
+  }, [productData, variant, language])
+
+  const isValueConnected = useCallback((field) => {
+    const currentValue = getProductFieldValue(field)
+    const defaultValue = getDefaultValue(field)
+
+    if (Array.isArray(currentValue) && Array.isArray(defaultValue)) {
+      return JSON.stringify(currentValue) === JSON.stringify(defaultValue)
+    }
+    return currentValue === defaultValue
+  }, [getProductFieldValue, getDefaultValue])
+
+  const restoreChannelValue = useCallback((field) => {
+    const defaultValue = getDefaultValue(field)
+    updateProductField(field, defaultValue)
+  }, [getDefaultValue, updateProductField])
+
+  const resetProductData = useCallback(() => {
+    setProductData(prev => {
+      const reset = {}
+      Object.keys(prev).forEach(key => {
+        reset[key] = {
+          variantChannelValues: {},
+          differsOn: prev[key].differsOn
+        }
+      })
+      return reset
+    })
+  }, [])
+
+  const getFieldLanguageValues = useCallback((field) => {
+    const fieldData = productData[field]
+    if (!fieldData) return {}
+
+    const effectiveChannel = activeTab === 'default' ? '' : channel
+    const isLanguageField = fieldData.differsOn?.includes('language')
+
+    if (!isLanguageField) return {}
+
+    const languageValues = {}
+    SUPPORTED_LANGUAGES.forEach(lang => {
+      const key = `${variant}_${effectiveChannel}_${lang}`
+      const value = fieldData.variantChannelValues[key]
+      if (value !== undefined && value !== null) {
+        languageValues[lang] = value
+      }
+    })
+    return languageValues
+  }, [productData, variant, channel, activeTab])
+
   const value = {
     variant,
     channel,
     language,
     activeTab,
     setActiveTab,
+    attributeFilter,
+    setAttributeFilter,
     handleVariantChange,
     handleChannelChange,
     handleLanguageChange,
@@ -223,6 +351,11 @@ export function ProductProvider({ children }) {
     getProductFieldValue,
     markFieldAsCopied,
     updateProductFieldTranslations,
+    getDefaultValue,
+    isValueConnected,
+    restoreChannelValue,
+    resetProductData,
+    getFieldLanguageValues,
   }
 
   return (

@@ -5,3 +5,5 @@ export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, Dialo
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip'
 export { Select } from './select'
 export { Combobox } from './combobox'
+export { default as MultiSelect } from './MultiSelect'
+export { default as LinkAction } from './LinkAction'

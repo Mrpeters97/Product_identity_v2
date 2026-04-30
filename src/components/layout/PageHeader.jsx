@@ -16,14 +16,24 @@ export default function PageHeader() {
       className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 flex flex-col items-start z-30 self-stretch"
       style={{
         fontFamily: 'var(--typography-font-family-font-sans, Inter)',
-        paddingRight: '24px',
-        paddingLeft: '24px',
         paddingBottom: '0',
         paddingTop: `${16 + 8 * (1 - progress)}px`, // 24px → 16px
         gap: '16px',
         transition: 'padding 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          width: '100%',
+          maxWidth: '1920px',
+          marginLeft: 'max(calc(24px), calc(50vw - 1088px))',
+          paddingRight: '24px',
+          paddingLeft: '0',
+        }}
+      >
       {/* Breadcrumbs - Always in DOM, fully smooth fade/slide */}
       <div 
         className="flex items-center flex-wrap w-full"
@@ -118,9 +128,8 @@ export default function PageHeader() {
           }}>
             Autosaved: 28-01-2026 16:07
           </span>
-          <button className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2">
-            Publish to catalog
-            <span>+</span>
+          <button className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium">
+            Add to catalog
           </button>
           <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
             <VerticalDotsIcon />
@@ -137,6 +146,10 @@ export default function PageHeader() {
           flexDirection: 'row',
           alignItems: 'center',
           gap: 'var(--Gap-2, 8px)',
+          marginLeft: '-24px',
+          marginRight: '-24px',
+          paddingLeft: '24px',
+          paddingRight: '24px',
         }}
       >
         <button
@@ -144,6 +157,7 @@ export default function PageHeader() {
           style={{
             borderRadius: '6px 6px 0 0',
             border: '1px solid #E4E4E7',
+            borderBottom: activeTab === 'default' ? '3px solid #fcfcfc' : '3px solid transparent',
             background: activeTab === 'default' ? '#FAFAFA' : '#FFF',
             padding: '12px 16px',
             fontSize: '14px',
@@ -152,6 +166,8 @@ export default function PageHeader() {
             cursor: 'pointer',
             fontFamily: 'var(--typography-font-family-font-sans, Inter)',
             transition: 'background 0.2s ease, font-weight 0.2s ease',
+            position: 'relative',
+            bottom: '-1px',
           }}
         >
           Default settings
@@ -161,6 +177,7 @@ export default function PageHeader() {
           style={{
             borderRadius: '6px 6px 0 0',
             border: '1px solid #E4E4E7',
+            borderBottom: activeTab === 'channel-specific' ? '3px solid #fcfcfc' : '3px solid transparent',
             background: activeTab === 'channel-specific' ? '#FAFAFA' : '#FFF',
             padding: '12px 16px',
             fontSize: '14px',
@@ -169,10 +186,13 @@ export default function PageHeader() {
             cursor: 'pointer',
             fontFamily: 'var(--typography-font-family-font-sans, Inter)',
             transition: 'background 0.2s ease, font-weight 0.2s ease',
+            position: 'relative',
+            bottom: '-1px',
           }}
         >
           Channel specific settings
         </button>
+      </div>
       </div>
     </div>
   )

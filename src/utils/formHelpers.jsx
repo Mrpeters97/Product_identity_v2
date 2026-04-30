@@ -2,6 +2,20 @@ import React from 'react'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Combobox } from '../components/ui/combobox'
+import RadioTiles from '../components/ui/RadioTiles'
+import MultiSelect from '../components/ui/MultiSelect'
+
+export const READONLY_INPUT_STYLE = {
+  backgroundColor: '#F4F4F5',
+  color: 'var(--base-muted-foreground, #71717A)',
+  cursor: 'default',
+}
+
+export const isValueEmpty = (value) => {
+  if (value === null || value === undefined || value === '') return true
+  if (Array.isArray(value)) return value.every(v => !v)
+  return false
+}
 
 /**
  * Renders form field based on field configuration
@@ -9,7 +23,7 @@ import { Combobox } from '../components/ui/combobox'
 export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFieldChange, handleAddArrayField, getProductFieldValue) => {
   if (fieldConfig.type === 'text-array') {
     return (
-      <div className="flex-1 flex flex-col items-start gap-2">
+      <div className="flex-1">
         {value.map((item, index) => (
           <Input
             key={index}
@@ -20,38 +34,33 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             className="w-full"
             required={fieldConfig.required}
             disabled={fieldConfig.readonly}
-            style={fieldConfig.readonly ? {
-              backgroundColor: '#F4F4F5',
-              color: 'var(--base-muted-foreground, #71717A)',
-              cursor: 'default',
-            } : {}}
+            style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
           />
         ))}
-        <Button size="sm" variant="outline" onClick={() => handleAddArrayField(fieldConfig.key)} disabled={fieldConfig.readonly}>
-          <span className="text-sm font-medium">+ Add {fieldConfig.label}</span>
-        </Button>
       </div>
     )
   }
 
   if (fieldConfig.type === 'select') {
-    return (
-      <div
-        className="flex-1"
-        style={fieldConfig.readonly ? {
-          borderRadius: 'var(--border-radius-md, 6px)',
-          border: '1px solid var(--base-input, #E4E4E7)',
-          backgroundColor: 'var(--base-muted, #F4F4F5)',
-          overflow: 'hidden',
-        } : {}}
-      >
-        <Combobox
-          options={fieldConfig.options}
-          value={value}
-          onValueChange={(newValue) => handleFieldChange(fieldConfig.key, newValue)}
-          placeholder={fieldConfig.placeholder}
-          disabled={fieldConfig.readonly}
-          style={fieldConfig.readonly ? {
+    if (fieldConfig.readonly) {
+      const selectedLabel = fieldConfig.options.find(opt => opt.value === value)?.label || value || fieldConfig.placeholder
+      return (
+        <div
+          style={{
+            display: 'flex',
+            height: 'var(--height-h-10, 40px)',
+            padding: 'var(--Gap-2, 8px) var(--Gap-3, 12px)',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            alignSelf: 'stretch',
+            borderRadius: 'var(--border-radius-md, 6px)',
+            border: '1px solid var(--base-input, #E4E4E7)',
+            opacity: 'var(--opacity-opacity-100, 1)',
+            background: 'var(--base-muted, #F4F4F5)',
+            flex: 1,
+          }}
+        >
+          <span style={{
             overflow: 'hidden',
             color: 'var(--base-muted-foreground, #71717A)',
             textOverflow: 'ellipsis',
@@ -60,35 +69,99 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             fontStyle: 'normal',
             fontWeight: 'var(--font-weight-normal, 400)',
             lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
-            cursor: 'default',
-            pointerEvents: 'none',
-            backgroundColor: 'transparent',
-            border: 'none',
-          } : {}}
+          }}>
+            {selectedLabel}
+          </span>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex-1">
+        <Combobox
+          options={fieldConfig.options}
+          value={value}
+          onValueChange={(newValue) => handleFieldChange(fieldConfig.key, newValue)}
+          placeholder={fieldConfig.placeholder}
         />
       </div>
     )
   }
 
-  if (fieldConfig.type === 'price') {
+  if (fieldConfig.type === 'multiselect') {
+    if (fieldConfig.readonly) {
+      const filteredValue = Array.isArray(value) ? value.filter(v => v) : []
+      const selectedCount = filteredValue.length
+      return (
+        <div
+          style={{
+            display: 'flex',
+            height: 'var(--height-h-10, 40px)',
+            padding: 'var(--Gap-2, 8px) var(--Gap-3, 12px)',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            alignSelf: 'stretch',
+            borderRadius: 'var(--border-radius-md, 6px)',
+            border: '1px solid var(--base-input, #E4E4E7)',
+            opacity: 'var(--opacity-opacity-100, 1)',
+            background: 'var(--base-muted, #F4F4F5)',
+            flex: 1,
+          }}
+        >
+          <span style={{
+            overflow: 'hidden',
+            color: 'var(--base-muted-foreground, #71717A)',
+            textOverflow: 'ellipsis',
+            fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+            fontSize: 'var(--typography-base-sizes-small-font-size, 14px)',
+            fontStyle: 'normal',
+            fontWeight: 'var(--font-weight-normal, 400)',
+            lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+          }}>
+            {selectedCount > 0 ? `${selectedCount} option${selectedCount !== 1 ? 's' : ''} selected` : fieldConfig.placeholder}
+          </span>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex-1">
+        <MultiSelect
+          options={fieldConfig.options}
+          value={Array.isArray(value) ? value : []}
+          onValueChange={(newValue) => handleFieldChange(fieldConfig.key, newValue)}
+          placeholder={fieldConfig.placeholder}
+        />
+      </div>
+    )
+  }
+
+  if (fieldConfig.type === 'radio-tiles') {
+    return (
+      <RadioTiles
+        options={fieldConfig.options}
+        value={value}
+        onValueChange={(newValue) => handleFieldChange(fieldConfig.key, newValue)}
+        disabled={fieldConfig.readonly}
+      />
+    )
+  }
+
+    if (fieldConfig.type === 'price') {
     return (
       <div className="flex-1 flex items-center gap-2">
         <div className="relative flex-1">
           <Input
-            type="text"
+            type="number"
             value={value}
             onChange={(e) => handleFieldChange(fieldConfig.key, e.target.value)}
             placeholder={fieldConfig.placeholder}
             className="flex-1 pr-12"
             required={fieldConfig.required}
             disabled={fieldConfig.readonly}
-            style={fieldConfig.readonly ? {
-              backgroundColor: '#F4F4F5',
-              color: 'var(--base-muted-foreground, #71717A)',
-              cursor: 'default',
-            } : {}}
+            style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Eur</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Euro</span>
         </div>
       </div>
     )
@@ -106,11 +179,7 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             className="flex-1 pr-12"
             required={fieldConfig.required}
             disabled={fieldConfig.readonly}
-            style={fieldConfig.readonly ? {
-              backgroundColor: '#F4F4F5',
-              color: 'var(--base-muted-foreground, #71717A)',
-              cursor: 'default',
-            } : {}}
+            style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">MB/s</span>
         </div>
@@ -182,7 +251,7 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
       required={fieldConfig.required}
       readOnly={fieldConfig.readonly}
       style={{
-        ...(value && fieldConfig.key === 'name' ? {
+        ...(value && fieldConfig.key === 'variantName' ? {
           overflow: 'hidden',
           color: 'var(--base-foreground, #18181B)',
           textOverflow: 'ellipsis',

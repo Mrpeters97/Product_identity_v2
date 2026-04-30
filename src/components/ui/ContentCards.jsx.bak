@@ -11,15 +11,14 @@ import FormRow from './FormRow'
 import CopyAction from './CopyAction'
 import TranslateAction from './TranslateAction'
 import LinkAction from './LinkAction'
-import RichTextEditor from './RichTextEditor'
 import AttributeBadge from './AttributeBadge'
 import { LinkIcon, UnlinkIcon, ClipboardIcon, TrashIcon } from './Icons'
-import { renderField, getCopyModeMessage, READONLY_INPUT_STYLE, isValueEmpty } from '../../utils/formHelpers'
+import { renderField, getCopyModeMessage } from '../../utils/formHelpers'
 
 export default function ProductInformation() {
-  const { productData, updateProductField, getProductFieldValue, markFieldAsCopied, updateProductFieldTranslations, variant, channel, language, activeTab, getDefaultValue, isValueConnected, restoreChannelValue, attributeFilter, getFieldLanguageValues } = useProduct()
+  const { productData, updateProductField, getProductFieldValue, markFieldAsCopied, updateProductFieldTranslations, variant, channel, language, activeTab, getDefaultValue, isValueConnected, restoreChannelValue } = useProduct()
   const [showToast, setShowToast] = useState(false)
-  const [toast, setToast] = useState({ message: 'Values successfully copied', variant: 'success' })
+  const [toastMessage, setToastMessage] = useState('Values successfully copied')
   const [isLoading, setIsLoading] = useState(false)
   const [showSystemNotification, setShowSystemNotification] = useState(false)
   const [systemNotificationMessage, setSystemNotificationMessage] = useState('')
@@ -83,24 +82,14 @@ export default function ProductInformation() {
     updateProductField(field, newArray)
   }, [getProductFieldValue, updateProductField])
 
-  const triggerToast = useCallback((message, variant = 'success') => {
-    setToast({ message, variant })
-    setTimeout(() => setShowToast(true), 300)
-  }, [])
-
   const handleCopyConfirm = useCallback((field, copyMode) => {
     markFieldAsCopied(field, copyMode)
     const message = getCopyModeMessage(copyMode)
-    triggerToast(message, 'success')
-  }, [markFieldAsCopied, triggerToast])
-
-  const handleCopyToClipboard = useCallback((value) => {
-    navigator.clipboard.writeText(value).then(() => {
-      triggerToast('Value copied to clipboard', 'system')
-    }).catch(() => {
-      triggerToast('Failed to copy to clipboard', 'system')
-    })
-  }, [triggerToast])
+    setToastMessage(message)
+    setTimeout(() => {
+      setShowToast(true)
+    }, 300)
+  }, [markFieldAsCopied])
 
   const isChannelSpecific = useCallback((field) => {
     return field.differsOn && field.differsOn.includes('channel')
@@ -114,29 +103,28 @@ export default function ProductInformation() {
     updateProductFieldTranslations(field, translations)
     const languageCount = Object.keys(translations).length
     const message = `Value successfully translated to ${languageCount} language${languageCount !== 1 ? 's' : ''}`
-    triggerToast(message, 'success')
-  }, [updateProductFieldTranslations, triggerToast])
+    setToastMessage(message)
+    setTimeout(() => {
+      setShowToast(true)
+    }, 300)
+  }, [updateProductFieldTranslations])
 
   const renderFieldElement = useCallback((field) => {
     return renderField(field, getProductFieldValue(field.key), handleFieldChange, handleArrayFieldChange, handleAddArrayField, getProductFieldValue)
   }, [handleFieldChange, handleArrayFieldChange, handleAddArrayField, getProductFieldValue])
 
-  const shouldShowField = useCallback((field) => {
-    if (attributeFilter === 'all') return true
-    if (attributeFilter === 'required') return !!field.required
-    if (attributeFilter === 'channel') return field.differsOn?.includes('channel') ?? false
-    if (attributeFilter === 'global') return !field.differsOn
+  const shouldShowField = useCallback((card, field) => {
     return true
-  }, [attributeFilter])
+  }, [activeTab])
 
   return (
     <TooltipProvider delayDuration={200}>
       <div className="flex justify-center w-full">
         {showToast && (
           <Toast
-            message={toast.message}
+            message={toastMessage}
             onClose={() => setShowToast(false)}
-            variant={toast.variant}
+            variant="success"
           />
         )}
 
@@ -154,9 +142,6 @@ export default function ProductInformation() {
             // For numbering, skip special cards (like mpc-identifier)
             const regularCardIndex = PRODUCT_CARDS.filter((c, i) => !c.isSpecial && i <= cardIndex).length
             
-            const visibleFields = card.fields.filter(field => shouldShowField(field))
-            if (visibleFields.length === 0) return null
-
             return (
               <div
                 key={card.id}
@@ -171,10 +156,11 @@ export default function ProductInformation() {
                   </div>
                 ) : (
                   <>
-                    {!card.isSpecial && !card.hideTitle && <h2 className="text-xl font-semibold">{card.title}</h2>}
+                    {!card.isSpecial && !card.hideTitle && <h2 className="text-xl font-semibold">{regularCardIndex}. {card.title}</h2>}
 
                     <div className="w-full flex flex-col gap-6">
-                      {visibleFields.map((field) => {
+                      {card.fields.map((field) => {
+                        if (!shouldShowField(card, field)) return null
 
                         const shouldBeReadonly = activeTab === 'channel-specific' && (!field.differsOn || (!field.differsOn.includes('variant') && !field.differsOn.includes('channel')))
                         const fieldConfig = {
@@ -203,7 +189,11 @@ export default function ProductInformation() {
                                           className="flex-1"
                                           required={field.required}
                                           disabled={fieldConfig.readonly}
-                                          style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
+                                          style={fieldConfig.readonly ? {
+                                            backgroundColor: '#F4F4F5',
+                                            color: 'var(--base-muted-foreground, #71717A)',
+                                            cursor: 'default',
+                                          } : {}}
                                         />
                                       </div>
                                       {index === 0 && !card.isSpecial && (
@@ -215,17 +205,16 @@ export default function ProductInformation() {
                                                   <CopyAction
                                                     field={field.key}
                                                     onCopyConfirm={handleCopyConfirm}
-                                                    disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                    disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
                                                     icon={<ClipboardIcon />}
                                                   />
                                                   {isTranslatable(field) ? (
                                                     <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
                                                       field={field.key}
                                                       currentValue={getProductFieldValue(field.key)}
                                                       currentLanguage={language}
                                                       onTranslateConfirm={handleTranslateConfirm}
-                                                      disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                      disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
                                                     />
                                                   ) : (
                                                     <div className="h-10 w-10 shrink-0"></div>
@@ -241,16 +230,15 @@ export default function ProductInformation() {
                                                     defaultValue={getDefaultValue(field.key)}
                                                     isConnected={isValueConnected(field.key)}
                                                     onRestore={restoreChannelValue}
-                                                    disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                    disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
                                                   />
                                                   {isTranslatable(field) ? (
                                                     <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
                                                       field={field.key}
                                                       currentValue={getProductFieldValue(field.key)}
                                                       currentLanguage={language}
                                                       onTranslateConfirm={handleTranslateConfirm}
-                                                      disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                      disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
                                                     />
                                                   ) : (
                                                     <div className="h-10 w-10 shrink-0"></div>
@@ -271,29 +259,24 @@ export default function ProductInformation() {
                                         </div>
                                       )}
                                       {index > 0 && !card.isSpecial && (
-                                        <div className="flex items-center gap-[var(--Gap-2,8px)] shrink-0">
-                                          <button
-                                            onClick={() => handleRemoveArrayField(field.key, index)}
-                                            disabled={fieldConfig.readonly}
-                                            style={{
-                                              borderRadius: 'var(--border-radius-md, 6px)',
-                                              border: '1px solid var(--base-input, #E4E4E7)',
-                                              display: 'flex',
-                                              width: '40px',
-                                              height: '40px',
-                                              justifyContent: 'center',
-                                              alignItems: 'center',
-                                              background: 'white',
-                                              cursor: fieldConfig.readonly ? 'not-allowed' : 'pointer',
-                                            }}
-                                            className="shrink-0"
-                                          >
-                                            <TrashIcon />
-                                          </button>
-                                          <div className="h-10 w-10 shrink-0"></div>
-                                          <div className="h-10 w-px"></div>
-                                          <div className="h-10 w-12 shrink-0"></div>
-                                        </div>
+                                        <button
+                                          onClick={() => handleRemoveArrayField(field.key, index)}
+                                          disabled={fieldConfig.readonly}
+                                          style={{
+                                            borderRadius: 'var(--border-radius-md, 6px)',
+                                            border: '1px solid var(--base-input, #E4E4E7)',
+                                            display: 'flex',
+                                            width: '40px',
+                                            height: '40px',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            background: 'white',
+                                            cursor: fieldConfig.readonly ? 'not-allowed' : 'pointer',
+                                          }}
+                                          className="shrink-0"
+                                        >
+                                          <TrashIcon />
+                                        </button>
                                       )}
                                     </div>
                                   ))}
@@ -305,86 +288,6 @@ export default function ProductInformation() {
                             </div>
                           )
                         }
-
-
-                        if (fieldConfig.type === 'rich-text') {
-                          const value = getProductFieldValue(field.key)
-                          return (
-                            <div key={field.key} className="flex-1">
-                              <RichTextEditor
-                                value={value || ''}
-                                onChange={(newValue) => handleFieldChange(field.key, newValue)}
-                                placeholder={field.placeholder}
-                                disabled={fieldConfig.readonly}
-                              />
-                              {!card.isSpecial && (
-                                <div className="flex items-center gap-[var(--Gap-2,8px)] shrink-0 mt-3">
-                                  {field.differsOn ? (
-                                    <>
-                                      {activeTab === 'default' && (
-                                        <>
-                                          <CopyAction
-                                            field={field.key}
-                                            onCopyConfirm={handleCopyConfirm}
-                                            disabled={!value}
-                                            icon={<ClipboardIcon />}
-                                          />
-                                          {isTranslatable(field) ? (
-                                            <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
-                                              field={field.key}
-                                              currentValue={value}
-                                              currentLanguage={language}
-                                              onTranslateConfirm={handleTranslateConfirm}
-                                              disabled={!value}
-                                            />
-                                          ) : (
-                                            <div className="h-10 w-10 shrink-0"></div>
-                                          )}
-                                          <div className="h-10 border-l border-[#E4E4E7]"></div>
-                                        </>
-                                      )}
-                                      {activeTab === 'channel-specific' && (
-                                        <>
-                                          <LinkAction
-                                            field={field.key}
-                                            currentValue={value}
-                                            defaultValue={getDefaultValue(field.key)}
-                                            isConnected={isValueConnected(field.key)}
-                                            onRestore={restoreChannelValue}
-                                            disabled={!value}
-                                          />
-                                          {isTranslatable(field) ? (
-                                            <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
-                                              field={field.key}
-                                              currentValue={value}
-                                              currentLanguage={language}
-                                              onTranslateConfirm={handleTranslateConfirm}
-                                              disabled={!value}
-                                            />
-                                          ) : (
-                                            <div className="h-10 w-10 shrink-0"></div>
-                                          )}
-                                          <div className="h-10 border-l border-[#E4E4E7]"></div>
-                                        </>
-                                      )}
-                                      <AttributeBadge differsOn={field.differsOn} diffLabels={DIFF_LABELS} />
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="h-10 w-10 shrink-0"></div>
-                                      <div className="h-10 w-10 shrink-0"></div>
-                                      <div className="h-10 w-px"></div>
-                                      <div className="h-10 w-12 shrink-0"></div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )
-                        }
-
 
                         return (
                           <div key={field.key} className="flex-1">
@@ -399,43 +302,19 @@ export default function ProductInformation() {
                                       <>
                                         {activeTab === 'default' && (
                                           <>
-                                            {field.key === 'mpcIdentifier' ? (
-                                              <button
-                                                onClick={() => handleCopyToClipboard(getProductFieldValue(field.key))}
-                                                disabled={!getProductFieldValue(field.key)}
-                                                style={{
-                                                  borderRadius: 'var(--border-radius-md, 6px)',
-                                                  border: '1px solid var(--base-input, #E4E4E7)',
-                                                  display: 'flex',
-                                                  width: '40px',
-                                                  height: '40px',
-                                                  justifyContent: 'center',
-                                                  alignItems: 'center',
-                                                  background: 'white',
-                                                  cursor: !getProductFieldValue(field.key) ? 'not-allowed' : 'pointer',
-                                                  opacity: !getProductFieldValue(field.key) ? 0.5 : 1,
-                                                }}
-                                                className="shrink-0"
-                                                title="Copy to clipboard"
-                                              >
-                                                <ClipboardIcon />
-                                              </button>
-                                            ) : (
-                                              <CopyAction
-                                                field={field.key}
-                                                onCopyConfirm={handleCopyConfirm}
-                                                disabled={isValueEmpty(getProductFieldValue(field.key))}
-                                                icon={<ClipboardIcon />}
-                                              />
-                                            )}
+                                            <CopyAction
+                                              field={field.key}
+                                              onCopyConfirm={handleCopyConfirm}
+                                              disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
+                                              icon={<ClipboardIcon />}
+                                            />
                                             {isTranslatable(field) ? (
                                               <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
                                                 field={field.key}
                                                 currentValue={getProductFieldValue(field.key)}
                                                 currentLanguage={language}
                                                 onTranslateConfirm={handleTranslateConfirm}
-                                                disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
                                               />
                                             ) : (
                                               <div className="h-10 w-10 shrink-0"></div>
@@ -451,16 +330,15 @@ export default function ProductInformation() {
                                               defaultValue={getDefaultValue(field.key)}
                                               isConnected={isValueConnected(field.key)}
                                               onRestore={restoreChannelValue}
-                                              disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                              disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
                                             />
                                             {isTranslatable(field) ? (
                                               <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
                                                 field={field.key}
                                                 currentValue={getProductFieldValue(field.key)}
                                                 currentLanguage={language}
                                                 onTranslateConfirm={handleTranslateConfirm}
-                                                disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                disabled={!getProductFieldValue(field.key) || (Array.isArray(getProductFieldValue(field.key)) && getProductFieldValue(field.key).every(v => !v))}
                                               />
                                             ) : (
                                               <div className="h-10 w-10 shrink-0"></div>
