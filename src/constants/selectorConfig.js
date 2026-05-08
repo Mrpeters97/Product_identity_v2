@@ -69,7 +69,7 @@ export const CHANNEL_OPTIONS = [
 // Sticky positioning constants
 export const STICKY_CONFIG = {
   triggerScroll: 164, // px
-  stickyTop: 118, // px
+  stickyTop: 115, // px
   zIndex: 9997,
 }
 

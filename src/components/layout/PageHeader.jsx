@@ -3,23 +3,31 @@ import { Button } from '../ui/button'
 import { VerticalDotsIcon } from '../ui/Icons'
 import { useScroll } from '../../context/ScrollContext'
 import { useProduct } from '../../context/ProductContext2'
+import { STICKY_CONFIG } from '../../constants/selectorConfig'
 
 export default function PageHeader() {
   const { scrollY } = useScroll()
   const { activeTab, setActiveTab } = useProduct()
+  const isVariantSelectorSticky = scrollY >= STICKY_CONFIG.triggerScroll
 
   // Animation progress: 0 (no scroll) to 1 (>= 60px scroll)
   const progress = Math.min(scrollY / 60, 1)
 
+  // Active tab border color changes based on sticky state
+  const activeTabBorderColor = isVariantSelectorSticky ? '#FFF' : '#FAFAFA'
+
   return (
     <div
-      className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 flex flex-col items-start z-30 self-stretch"
+      className="fixed top-0 left-64 right-0 flex flex-col items-start self-stretch"
       style={{
         fontFamily: 'var(--typography-font-family-font-sans, Inter)',
         paddingBottom: '0',
-        paddingTop: `${16 + 8 * (1 - progress)}px`, // 24px → 16px
+        paddingTop: `${16 + 8 * (1 - progress)}px`,
         gap: '16px',
         transition: 'padding 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        zIndex: 9999,
+        borderBottom: '1px solid #71717A',
+        background: 'var(--base-background, #FFF)',
       }}
     >
       <div
@@ -90,7 +98,7 @@ export default function PageHeader() {
           </h1>
 
           {/* Draft Badge */}
-          <span style={{
+          <span data-tour="draft-badge" style={{
             borderRadius: 'var(--border-radius-full, 9999px)',
             border: '1px solid var(--tailwind-colors-base-transparent, rgba(255, 255, 255, 0.00))',
             background: 'var(--base-secondary, #F4F4F5)',
@@ -102,18 +110,22 @@ export default function PageHeader() {
             Draft
           </span>
 
-          {/* Divider */}
-          <div style={{
-            height: '32px',
-            width: '1px',
-            background: 'var(--base-border, #E4E4E7)',
-          }} />
+          {activeTab !== 'channel-specific' && (
+            <>
+              {/* Divider */}
+              <div style={{
+                height: '32px',
+                width: '1px',
+                background: 'var(--base-border, #E4E4E7)',
+              }} />
 
-          {/* Completeness Score Button */}
-          <Button variant="outline" size="sm" className="h-8 gap-2 rounded-full border-gray-200 px-3 text-xs font-medium text-gray-600 hover:bg-gray-50">
-            <Info className="h-3.5 w-3.5" />
-            Completeness score
-          </Button>
+              {/* Completeness Score Button */}
+              <Button variant="outline" size="sm" className="h-8 gap-2 rounded-full border-gray-200 px-3 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                <Info className="h-3.5 w-3.5" />
+                Completeness score
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Right side: Autosaved, Publish CTA, Menu */}
@@ -128,7 +140,7 @@ export default function PageHeader() {
           }}>
             Autosaved: 28-01-2026 16:07
           </span>
-          <button className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium">
+          <button data-tour="publish-button" className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium">
             Add to catalog
           </button>
           <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
@@ -152,46 +164,58 @@ export default function PageHeader() {
           paddingRight: '24px',
         }}
       >
+        <div data-tour="tab-structure" style={{ display: 'flex', gap: 'var(--Gap-2, 8px)' }}>
         <button
           onClick={() => setActiveTab('default')}
           style={{
             borderRadius: '6px 6px 0 0',
-            border: '1px solid #E4E4E7',
-            borderBottom: activeTab === 'default' ? '3px solid #fcfcfc' : '3px solid transparent',
+            borderTop: activeTab === 'default' ? '1px solid #71717A' : '1px solid #E4E4E7',
+            borderLeft: activeTab === 'default' ? '1px solid #71717A' : '1px solid #E4E4E7',
+            borderRight: activeTab === 'default' ? '1px solid #71717A' : '1px solid #E4E4E7',
+            borderBottom: activeTab === 'default' ? `1px solid ${activeTabBorderColor}` : 'none',
             background: activeTab === 'default' ? '#FAFAFA' : '#FFF',
             padding: '12px 16px',
-            fontSize: '14px',
-            fontWeight: activeTab === 'default' ? '600' : '500',
-            color: 'var(--base-foreground, #18181B)',
+            fontSize: 'var(--typography-base-sizes-small-font-size, 14px)',
+            fontStyle: 'normal',
+            fontWeight: activeTab === 'default' ? '600' : 'var(--font-weight-medium, 500)',
+            color: activeTab === 'default' ? 'var(--base-foreground, #18181B)' : 'var(--base-muted-foreground, #71717A)',
             cursor: 'pointer',
             fontFamily: 'var(--typography-font-family-font-sans, Inter)',
-            transition: 'background 0.2s ease, font-weight 0.2s ease',
-            position: 'relative',
-            bottom: '-1px',
+            lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            transition: 'all 0.2s ease',
+            boxShadow: activeTab === 'default' ? `0px 1px 0px 0px ${activeTabBorderColor}` : 'none',
           }}
         >
-          Default settings
+          Default values
         </button>
         <button
           onClick={() => setActiveTab('channel-specific')}
           style={{
             borderRadius: '6px 6px 0 0',
-            border: '1px solid #E4E4E7',
-            borderBottom: activeTab === 'channel-specific' ? '3px solid #fcfcfc' : '3px solid transparent',
+            borderTop: activeTab === 'channel-specific' ? '1px solid #71717A' : '1px solid #E4E4E7',
+            borderLeft: activeTab === 'channel-specific' ? '1px solid #71717A' : '1px solid #E4E4E7',
+            borderRight: activeTab === 'channel-specific' ? '1px solid #71717A' : '1px solid #E4E4E7',
+            borderBottom: activeTab === 'channel-specific' ? `1px solid ${activeTabBorderColor}` : 'none',
             background: activeTab === 'channel-specific' ? '#FAFAFA' : '#FFF',
             padding: '12px 16px',
-            fontSize: '14px',
-            fontWeight: activeTab === 'channel-specific' ? '600' : '500',
-            color: 'var(--base-foreground, #18181B)',
+            fontSize: 'var(--typography-base-sizes-small-font-size, 14px)',
+            fontStyle: 'normal',
+            fontWeight: activeTab === 'channel-specific' ? '600' : 'var(--font-weight-medium, 500)',
+            color: activeTab === 'channel-specific' ? 'var(--base-foreground, #18181B)' : 'var(--base-muted-foreground, #71717A)',
             cursor: 'pointer',
             fontFamily: 'var(--typography-font-family-font-sans, Inter)',
-            transition: 'background 0.2s ease, font-weight 0.2s ease',
-            position: 'relative',
-            bottom: '-1px',
+            lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            transition: 'all 0.2s ease',
+            boxShadow: activeTab === 'channel-specific' ? `0px 1px 0px 0px ${activeTabBorderColor}` : 'none',
           }}
         >
-          Channel specific settings
+          Channel values
         </button>
+        </div>
       </div>
       </div>
     </div>

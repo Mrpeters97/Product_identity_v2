@@ -11,6 +11,20 @@ export const READONLY_INPUT_STYLE = {
   cursor: 'default',
 }
 
+export const DISABLED_INPUT_STYLE = {
+  borderRadius: 'var(--border-radius-md, 6px)',
+  border: 'var(--border-width-border-1, 1px) solid var(--base-input, #E4E4E7)',
+  background: 'var(--base-background, #FFF)',
+  overflow: 'hidden',
+  color: 'var(--base-muted-foreground, #71717A)',
+  textOverflow: 'ellipsis',
+  fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+  fontSize: 'var(--typography-base-sizes-small-font-size, 14px)',
+  fontStyle: 'normal',
+  fontWeight: 'var(--font-weight-normal, 400)',
+  lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+}
+
 export const isValueEmpty = (value) => {
   if (value === null || value === undefined || value === '') return true
   if (Array.isArray(value)) return value.every(v => !v)
@@ -33,8 +47,12 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             placeholder={fieldConfig.placeholder}
             className="w-full"
             required={fieldConfig.required}
-            disabled={fieldConfig.readonly}
-            style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
+            readOnly={fieldConfig.readonly}
+            style={{
+              ...(fieldConfig.isInheritedChannelValue ? DISABLED_INPUT_STYLE : {}),
+              ...(fieldConfig.isInheritedChannelValue ? { pointerEvents: 'none' } : {}),
+              ...(fieldConfig.readonly && !fieldConfig.isInheritedChannelValue ? READONLY_INPUT_STYLE : {}),
+            }}
           />
         ))}
       </div>
@@ -42,7 +60,7 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
   }
 
   if (fieldConfig.type === 'select') {
-    if (fieldConfig.readonly) {
+    if (fieldConfig.readonly || fieldConfig.isInheritedChannelValue) {
       const selectedLabel = fieldConfig.options.find(opt => opt.value === value)?.label || value || fieldConfig.placeholder
       return (
         <div
@@ -55,9 +73,10 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             alignSelf: 'stretch',
             borderRadius: 'var(--border-radius-md, 6px)',
             border: '1px solid var(--base-input, #E4E4E7)',
-            opacity: 'var(--opacity-opacity-100, 1)',
-            background: 'var(--base-muted, #F4F4F5)',
+            opacity: 1,
+            background: fieldConfig.isInheritedChannelValue ? 'var(--base-background, #FFF)' : 'var(--base-muted, #F4F4F5)',
             flex: 1,
+            ...(fieldConfig.isInheritedChannelValue ? { pointerEvents: 'none' } : {}),
           }}
         >
           <span style={{
@@ -89,7 +108,7 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
   }
 
   if (fieldConfig.type === 'multiselect') {
-    if (fieldConfig.readonly) {
+    if (fieldConfig.readonly || fieldConfig.isInheritedChannelValue) {
       const filteredValue = Array.isArray(value) ? value.filter(v => v) : []
       const selectedCount = filteredValue.length
       return (
@@ -103,9 +122,10 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             alignSelf: 'stretch',
             borderRadius: 'var(--border-radius-md, 6px)',
             border: '1px solid var(--base-input, #E4E4E7)',
-            opacity: 'var(--opacity-opacity-100, 1)',
-            background: 'var(--base-muted, #F4F4F5)',
+            opacity: 1,
+            background: fieldConfig.isInheritedChannelValue ? 'var(--base-background, #FFF)' : 'var(--base-muted, #F4F4F5)',
             flex: 1,
+            ...(fieldConfig.isInheritedChannelValue ? { pointerEvents: 'none' } : {}),
           }}
         >
           <span style={{
@@ -138,12 +158,14 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
 
   if (fieldConfig.type === 'radio-tiles') {
     return (
-      <RadioTiles
-        options={fieldConfig.options}
-        value={value}
-        onValueChange={(newValue) => handleFieldChange(fieldConfig.key, newValue)}
-        disabled={fieldConfig.readonly}
-      />
+      <div className="flex-1" style={fieldConfig.isInheritedChannelValue ? { opacity: 1, pointerEvents: 'none' } : {}}>
+        <RadioTiles
+          options={fieldConfig.options}
+          value={value}
+          onValueChange={(newValue) => handleFieldChange(fieldConfig.key, newValue)}
+          disabled={fieldConfig.disabled || fieldConfig.readonly || fieldConfig.isInheritedChannelValue}
+        />
+      </div>
     )
   }
 
@@ -158,8 +180,8 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             placeholder={fieldConfig.placeholder}
             className="flex-1 pr-12"
             required={fieldConfig.required}
-            disabled={fieldConfig.readonly}
-            style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
+            disabled={fieldConfig.isInheritedChannelValue || fieldConfig.readonly}
+            style={fieldConfig.isInheritedChannelValue ? DISABLED_INPUT_STYLE : fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Euro</span>
         </div>
@@ -178,8 +200,8 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
             placeholder={fieldConfig.placeholder}
             className="flex-1 pr-12"
             required={fieldConfig.required}
-            disabled={fieldConfig.readonly}
-            style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
+            disabled={fieldConfig.isInheritedChannelValue || fieldConfig.readonly}
+            style={fieldConfig.isInheritedChannelValue ? DISABLED_INPUT_STYLE : fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">MB/s</span>
         </div>
@@ -196,8 +218,8 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
         placeholder={fieldConfig.placeholder}
         className="flex-1"
         required={fieldConfig.required}
-        disabled={fieldConfig.readonly}
-        style={fieldConfig.readonly ? {
+        disabled={fieldConfig.disabled || fieldConfig.readonly}
+        style={fieldConfig.disabled && isInheritedChannelValue ? DISABLED_INPUT_STYLE : fieldConfig.readonly ? {
           backgroundColor: '#F4F4F5',
           color: 'var(--base-muted-foreground, #71717A)',
           cursor: 'default',
@@ -216,9 +238,9 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
           type="date"
           value={fromValue || ''}
           onChange={(e) => handleFieldChange(fieldConfig.fields[0], e.target.value)}
-          disabled={fieldConfig.readonly}
+          disabled={fieldConfig.disabled || fieldConfig.readonly}
           className="flex-1 px-3 py-2 border border-[#E4E4E7] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          style={fieldConfig.readonly ? {
+          style={fieldConfig.disabled && isInheritedChannelValue ? DISABLED_INPUT_STYLE : fieldConfig.readonly ? {
             backgroundColor: '#F4F4F5',
             color: 'var(--base-muted-foreground, #71717A)',
             cursor: 'default',
@@ -228,9 +250,9 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
           type="date"
           value={untilValue || ''}
           onChange={(e) => handleFieldChange(fieldConfig.fields[1], e.target.value)}
-          disabled={fieldConfig.readonly}
+          disabled={fieldConfig.disabled || fieldConfig.readonly}
           className="flex-1 px-3 py-2 border border-[#E4E4E7] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          style={fieldConfig.readonly ? {
+          style={fieldConfig.disabled && isInheritedChannelValue ? DISABLED_INPUT_STYLE : fieldConfig.readonly ? {
             backgroundColor: '#F4F4F5',
             color: 'var(--base-muted-foreground, #71717A)',
             cursor: 'default',
@@ -251,7 +273,9 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
       required={fieldConfig.required}
       readOnly={fieldConfig.readonly}
       style={{
-        ...(value && fieldConfig.key === 'variantName' ? {
+        ...(fieldConfig.isInheritedChannelValue ? DISABLED_INPUT_STYLE : {}),
+        ...(fieldConfig.isInheritedChannelValue ? { pointerEvents: 'none' } : {}),
+        ...(value && fieldConfig.key === 'variantName' && !fieldConfig.readonly && !fieldConfig.isInheritedChannelValue ? {
           overflow: 'hidden',
           color: 'var(--base-foreground, #18181B)',
           textOverflow: 'ellipsis',
@@ -261,7 +285,7 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
           fontWeight: 'var(--font-weight-normal, 400)',
           lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
         } : {}),
-        ...(fieldConfig.readonly ? {
+        ...(fieldConfig.readonly && !fieldConfig.isInheritedChannelValue ? {
           backgroundColor: '#F4F4F5',
           color: 'var(--base-muted-foreground, #71717A)',
           cursor: 'default',
@@ -277,7 +301,7 @@ export const renderField = (fieldConfig, value, handleFieldChange, handleArrayFi
 export const getCopyModeMessage = (mode) => {
   const messages = {
     'variants': 'Values successfully copied to all variants',
-    'channels': 'Values successfully copied to all variants',
+    'channels': 'Values successfully copied to all channels',
     'all': 'Values successfully copied to all variants'
   }
   return messages[mode] || 'Values successfully copied'

@@ -5,10 +5,13 @@ import Sidebar from './components/layout/Sidebar'
 import RightAnchorMenu from './components/layout/RightAnchorMenu'
 import { ProductProvider } from './context/ProductContext2'
 import { ScrollProvider } from './context/ScrollContext'
+import { TourProvider } from './context/TourContext'
+import ProductTour from './components/ui/ProductTour'
 
 
 function App() {
   return (
+    <TourProvider>
     <ScrollProvider>
       <ProductProvider>
         <PageHeader />
@@ -41,8 +44,10 @@ function App() {
             </div>
           </div>
         </div>
+        <ProductTour />
       </ProductProvider>
     </ScrollProvider>
+    </TourProvider>
   )
 }
 

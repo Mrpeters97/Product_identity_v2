@@ -67,8 +67,8 @@ export function ProductProvider({ children }) {
     builtInMicrophone: { variantChannelValues: {}, differsOn: null },
     
     // Images and Media
-    productImages: { variantChannelValues: {}, differsOn: null },
-    videoReviews: { variantChannelValues: {}, differsOn: null },
+    productImages: { variantChannelValues: {}, differsOn: 'variant' },
+    videoReviews: { variantChannelValues: {}, differsOn: 'variant-channel-language' },
   })
 
   const getProductFieldValue = useCallback((field) => {

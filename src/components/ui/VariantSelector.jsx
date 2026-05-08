@@ -118,14 +118,14 @@ export default function VariantSelector() {
             </svg>
           </span>
         </div>
-        <div ref={headingRef} className="flex justify-between" style={{ alignItems: 'flex-end', marginBottom: '12px', display: isSticky ? 'none' : 'flex' }}>
+        <div ref={headingRef} className="flex justify-between" data-tour="variant-selector-heading" style={{ alignItems: 'flex-end', marginBottom: '12px', display: isSticky ? 'none' : 'flex' }}>
           <div>
             <h2 style={HEADING_STYLE}>Product Configuration</h2>
             <p style={DESCRIPTION_STYLE}>
               Manage product details by selecting a specific variant, and langauge combination.
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div data-tour="variant-selector-filter" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{
               color: 'var(--base-sidebar-foreground, #3F3F46)',
               fontFamily: 'var(--typography-font-family-font-sans, Inter)',
@@ -212,6 +212,7 @@ export default function VariantSelector() {
         <div
           ref={selectorRef}
           id="variant-selector-sticky"
+          data-tour="variant-selector"
           style={{
             display: 'flex',
             padding: 'var(--Gap-3, 12px) var(--Gap-6, 24px)',

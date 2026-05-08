@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useProduct } from '../../context/ProductContext2'
+import { useProduct, SUPPORTED_LANGUAGES } from '../../context/ProductContext2'
 import { PRODUCT_CARDS, DIFF_LABELS } from '../../constants/productCards'
 import { Button } from './button'
 import { Input } from './input'
@@ -9,12 +9,13 @@ import Toast from './Toast'
 import Skeleton from './Skeleton'
 import FormRow from './FormRow'
 import CopyAction from './CopyAction'
-import TranslateAction from './TranslateAction'
+// import TranslateAction from './TranslateAction'
 import LinkAction from './LinkAction'
+import CopyToChannelsAction from './CopyToChannelsAction'
 import RichTextEditor from './RichTextEditor'
 import AttributeBadge from './AttributeBadge'
 import { LinkIcon, UnlinkIcon, ClipboardIcon, TrashIcon } from './Icons'
-import { renderField, getCopyModeMessage, READONLY_INPUT_STYLE, isValueEmpty } from '../../utils/formHelpers'
+import { renderField, getCopyModeMessage, READONLY_INPUT_STYLE, DISABLED_INPUT_STYLE, isValueEmpty } from '../../utils/formHelpers'
 
 export default function ProductInformation() {
   const { productData, updateProductField, getProductFieldValue, markFieldAsCopied, updateProductFieldTranslations, variant, channel, language, activeTab, getDefaultValue, isValueConnected, restoreChannelValue, attributeFilter, getFieldLanguageValues } = useProduct()
@@ -102,6 +103,26 @@ export default function ProductInformation() {
     })
   }, [triggerToast])
 
+  const handleChangeToChannelSpecific = useCallback((field) => {
+    const fieldData = productData[field]
+    const isLanguageField = fieldData?.differsOn?.includes('language')
+    const fieldDef = PRODUCT_CARDS.flatMap(c => c.fields).find(f => f.key === field)
+    const emptyValue = fieldDef?.type === 'text-array' ? [''] : ''
+
+    if (isLanguageField) {
+      // Write empty to channel-specific key for ALL languages so isValueConnected becomes false
+      const emptyTranslations = SUPPORTED_LANGUAGES.reduce((acc, lang) => {
+        acc[lang] = emptyValue
+        return acc
+      }, {})
+      updateProductFieldTranslations(field, emptyTranslations)
+    } else {
+      updateProductField(field, emptyValue)
+    }
+
+    triggerToast('Field changed to channel specific value', 'success')
+  }, [productData, updateProductField, updateProductFieldTranslations, triggerToast])
+
   const isChannelSpecific = useCallback((field) => {
     return field.differsOn && field.differsOn.includes('channel')
   }, [])
@@ -177,9 +198,13 @@ export default function ProductInformation() {
                       {visibleFields.map((field) => {
 
                         const shouldBeReadonly = activeTab === 'channel-specific' && (!field.differsOn || (!field.differsOn.includes('variant') && !field.differsOn.includes('channel')))
+                        const isInheritedChannelValue = activeTab === 'channel-specific' && !!field.differsOn && !field.readonly && isValueConnected(field.key)
+                        const defaultIsEmpty = activeTab === 'channel-specific' && isValueEmpty(getDefaultValue(field.key))
                         const fieldConfig = {
                           ...field,
-                          readonly: shouldBeReadonly ? true : field.readonly
+                          placeholder: defaultIsEmpty ? 'No default value yet' : field.placeholder,
+                          readonly: shouldBeReadonly ? true : field.readonly,
+                          isInheritedChannelValue: isInheritedChannelValue
                         }
 
                         if (fieldConfig.type === 'text-array') {
@@ -199,11 +224,14 @@ export default function ProductInformation() {
                                           type="text"
                                           value={item}
                                           onChange={(e) => handleArrayFieldChange(field.key, index, e.target.value)}
-                                          placeholder={field.placeholder}
+                                          placeholder={fieldConfig.placeholder}
                                           className="flex-1"
                                           required={field.required}
-                                          disabled={fieldConfig.readonly}
-                                          style={fieldConfig.readonly ? READONLY_INPUT_STYLE : {}}
+                                          readOnly={fieldConfig.readonly || fieldConfig.isInheritedChannelValue}
+                                          style={{
+                                            ...(fieldConfig.isInheritedChannelValue ? { ...DISABLED_INPUT_STYLE, pointerEvents: 'none' } : {}),
+                                            ...(fieldConfig.readonly && !fieldConfig.isInheritedChannelValue ? READONLY_INPUT_STYLE : {}),
+                                          }}
                                         />
                                       </div>
                                       {index === 0 && !card.isSpecial && (
@@ -218,18 +246,6 @@ export default function ProductInformation() {
                                                     disabled={isValueEmpty(getProductFieldValue(field.key))}
                                                     icon={<ClipboardIcon />}
                                                   />
-                                                  {isTranslatable(field) ? (
-                                                    <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
-                                                      field={field.key}
-                                                      currentValue={getProductFieldValue(field.key)}
-                                                      currentLanguage={language}
-                                                      onTranslateConfirm={handleTranslateConfirm}
-                                                      disabled={isValueEmpty(getProductFieldValue(field.key))}
-                                                    />
-                                                  ) : (
-                                                    <div className="h-10 w-10 shrink-0"></div>
-                                                  )}
                                                   <div className="h-10 border-l border-[#E4E4E7]"></div>
                                                 </>
                                               )}
@@ -241,16 +257,15 @@ export default function ProductInformation() {
                                                     defaultValue={getDefaultValue(field.key)}
                                                     isConnected={isValueConnected(field.key)}
                                                     onRestore={restoreChannelValue}
-                                                    disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                    onChangeToChannelSpecific={handleChangeToChannelSpecific}
+                                                    disabled={isValueConnected(field.key) ? isValueEmpty(getProductFieldValue(field.key)) : false}
                                                   />
-                                                  {isTranslatable(field) ? (
-                                                    <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
+                                                  {isChannelSpecific(field) ? (
+                                                    <CopyToChannelsAction
+                                                      icon={<ClipboardIcon />}
                                                       field={field.key}
-                                                      currentValue={getProductFieldValue(field.key)}
-                                                      currentLanguage={language}
-                                                      onTranslateConfirm={handleTranslateConfirm}
-                                                      disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                                      onCopyConfirm={handleCopyConfirm}
+                                                      disabled={isValueConnected(field.key) || isValueEmpty(getProductFieldValue(field.key))}
                                                     />
                                                   ) : (
                                                     <div className="h-10 w-10 shrink-0"></div>
@@ -262,7 +277,7 @@ export default function ProductInformation() {
                                             </>
                                           ) : (
                                             <>
-                                              <div className="h-10 w-10 shrink-0"></div>
+                                              {activeTab === 'channel-specific' && <div className="h-10 w-10 shrink-0"></div>}
                                               <div className="h-10 w-10 shrink-0"></div>
                                               <div className="h-10 w-px"></div>
                                               <div className="h-10 w-12 shrink-0"></div>
@@ -270,11 +285,11 @@ export default function ProductInformation() {
                                           )}
                                         </div>
                                       )}
-                                      {index > 0 && !card.isSpecial && (
+                                      {index > 0 && !card.isSpecial && activeTab !== 'channel-specific' && (
                                         <div className="flex items-center gap-[var(--Gap-2,8px)] shrink-0">
                                           <button
                                             onClick={() => handleRemoveArrayField(field.key, index)}
-                                            disabled={fieldConfig.readonly}
+                                            disabled={fieldConfig.readonly || fieldConfig.isInheritedChannelValue}
                                             style={{
                                               borderRadius: 'var(--border-radius-md, 6px)',
                                               border: '1px solid var(--base-input, #E4E4E7)',
@@ -290,6 +305,37 @@ export default function ProductInformation() {
                                           >
                                             <TrashIcon />
                                           </button>
+                                          <div className="h-10 w-px"></div>
+                                          <div className="h-10 w-12 shrink-0"></div>
+                                        </div>
+                                      )}
+                                      {index > 0 && !card.isSpecial && activeTab === 'channel-specific' && fieldConfig.isInheritedChannelValue && (
+                                        <div className="flex items-center gap-[var(--Gap-2,8px)] shrink-0">
+                                          <div className="h-10 w-10 shrink-0"></div>
+                                          <div className="h-10 w-10 shrink-0"></div>
+                                          <div className="h-10 w-px"></div>
+                                          <div className="h-10 w-12 shrink-0"></div>
+                                        </div>
+                                      )}
+                                      {index > 0 && !card.isSpecial && activeTab === 'channel-specific' && !fieldConfig.isInheritedChannelValue && (
+                                        <div className="flex items-center gap-[var(--Gap-2,8px)] shrink-0">
+                                          <button
+                                            onClick={() => handleRemoveArrayField(field.key, index)}
+                                            style={{
+                                              borderRadius: 'var(--border-radius-md, 6px)',
+                                              border: '1px solid var(--base-input, #E4E4E7)',
+                                              display: 'flex',
+                                              width: '40px',
+                                              height: '40px',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              background: 'white',
+                                              cursor: 'pointer',
+                                            }}
+                                            className="shrink-0"
+                                          >
+                                            <TrashIcon />
+                                          </button>
                                           <div className="h-10 w-10 shrink-0"></div>
                                           <div className="h-10 w-px"></div>
                                           <div className="h-10 w-12 shrink-0"></div>
@@ -297,7 +343,7 @@ export default function ProductInformation() {
                                       )}
                                     </div>
                                   ))}
-                                  <Button size="sm" variant="outline" onClick={() => handleAddArrayField(fieldConfig.key)} disabled={fieldConfig.readonly} className="w-fit">
+                                  <Button size="sm" variant="outline" onClick={() => handleAddArrayField(fieldConfig.key)} disabled={fieldConfig.readonly || fieldConfig.isInheritedChannelValue} className="w-fit">
                                     <span className="text-sm font-medium">+ Add {field.label}</span>
                                   </Button>
                                 </div>
@@ -311,12 +357,14 @@ export default function ProductInformation() {
                           const value = getProductFieldValue(field.key)
                           return (
                             <div key={field.key} className="flex-1">
-                              <RichTextEditor
-                                value={value || ''}
-                                onChange={(newValue) => handleFieldChange(field.key, newValue)}
-                                placeholder={field.placeholder}
-                                disabled={fieldConfig.readonly}
-                              />
+                              <div style={fieldConfig.isInheritedChannelValue ? { pointerEvents: 'none' } : {}}>
+                                <RichTextEditor
+                                  value={value || ''}
+                                  onChange={(newValue) => handleFieldChange(field.key, newValue)}
+                                  placeholder={fieldConfig.placeholder}
+                                  disabled={fieldConfig.readonly || fieldConfig.isInheritedChannelValue}
+                                />
+                              </div>
                               {!card.isSpecial && (
                                 <div className="flex items-center gap-[var(--Gap-2,8px)] shrink-0 mt-3">
                                   {field.differsOn ? (
@@ -329,18 +377,6 @@ export default function ProductInformation() {
                                             disabled={!value}
                                             icon={<ClipboardIcon />}
                                           />
-                                          {isTranslatable(field) ? (
-                                            <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
-                                              field={field.key}
-                                              currentValue={value}
-                                              currentLanguage={language}
-                                              onTranslateConfirm={handleTranslateConfirm}
-                                              disabled={!value}
-                                            />
-                                          ) : (
-                                            <div className="h-10 w-10 shrink-0"></div>
-                                          )}
                                           <div className="h-10 border-l border-[#E4E4E7]"></div>
                                         </>
                                       )}
@@ -352,17 +388,16 @@ export default function ProductInformation() {
                                             defaultValue={getDefaultValue(field.key)}
                                             isConnected={isValueConnected(field.key)}
                                             onRestore={restoreChannelValue}
-                                            disabled={!value}
+                                            onChangeToChannelSpecific={handleChangeToChannelSpecific}
+                                            disabled={isValueConnected(field.key) ? !value : false}
                                           />
-                                          {isTranslatable(field) ? (
-                                            <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
-                                              field={field.key}
-                                              currentValue={value}
-                                              currentLanguage={language}
-                                              onTranslateConfirm={handleTranslateConfirm}
-                                              disabled={!value}
-                                            />
+                                          {isChannelSpecific(field) ? (
+                                            <CopyToChannelsAction
+                                                      icon={<ClipboardIcon />}
+                                                      field={field.key}
+                                                      onCopyConfirm={handleCopyConfirm}
+                                                      disabled={isValueConnected(field.key) || !value}
+                                                    />
                                           ) : (
                                             <div className="h-10 w-10 shrink-0"></div>
                                           )}
@@ -373,7 +408,6 @@ export default function ProductInformation() {
                                     </>
                                   ) : (
                                     <>
-                                      <div className="h-10 w-10 shrink-0"></div>
                                       <div className="h-10 w-10 shrink-0"></div>
                                       <div className="h-10 w-px"></div>
                                       <div className="h-10 w-12 shrink-0"></div>
@@ -397,7 +431,7 @@ export default function ProductInformation() {
                                   <div className="flex items-center h-10 gap-[var(--Gap-2,8px)] shrink-0">
                                     {field.differsOn ? (
                                       <>
-                                        {activeTab === 'default' && (
+                                        {(activeTab === 'default' || field.readonly) && (
                                           <>
                                             {field.key === 'mpcIdentifier' ? (
                                               <button
@@ -428,22 +462,10 @@ export default function ProductInformation() {
                                                 icon={<ClipboardIcon />}
                                               />
                                             )}
-                                            {isTranslatable(field) ? (
-                                              <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
-                                                field={field.key}
-                                                currentValue={getProductFieldValue(field.key)}
-                                                currentLanguage={language}
-                                                onTranslateConfirm={handleTranslateConfirm}
-                                                disabled={isValueEmpty(getProductFieldValue(field.key))}
-                                              />
-                                            ) : (
-                                              <div className="h-10 w-10 shrink-0"></div>
-                                            )}
                                             <div className="h-10 border-l border-[#E4E4E7]"></div>
                                           </>
                                         )}
-                                        {activeTab === 'channel-specific' && (
+                                        {activeTab === 'channel-specific' && !field.readonly && (
                                           <>
                                             <LinkAction
                                               field={field.key}
@@ -451,17 +473,16 @@ export default function ProductInformation() {
                                               defaultValue={getDefaultValue(field.key)}
                                               isConnected={isValueConnected(field.key)}
                                               onRestore={restoreChannelValue}
-                                              disabled={isValueEmpty(getProductFieldValue(field.key))}
+                                              onChangeToChannelSpecific={handleChangeToChannelSpecific}
+                                              disabled={isValueConnected(field.key) ? isValueEmpty(getProductFieldValue(field.key)) : false}
                                             />
-                                            {isTranslatable(field) ? (
-                                              <TranslateAction
-                                                      existingLanguageValues={getFieldLanguageValues(field.key)}
-                                                field={field.key}
-                                                currentValue={getProductFieldValue(field.key)}
-                                                currentLanguage={language}
-                                                onTranslateConfirm={handleTranslateConfirm}
-                                                disabled={isValueEmpty(getProductFieldValue(field.key))}
-                                              />
+                                            {isChannelSpecific(field) ? (
+                                              <CopyToChannelsAction
+                                                      icon={<ClipboardIcon />}
+                                                      field={field.key}
+                                                      onCopyConfirm={handleCopyConfirm}
+                                                      disabled={isValueConnected(field.key) || isValueEmpty(getProductFieldValue(field.key))}
+                                                    />
                                             ) : (
                                               <div className="h-10 w-10 shrink-0"></div>
                                             )}
@@ -472,7 +493,7 @@ export default function ProductInformation() {
                                       </>
                                     ) : (
                                       <>
-                                        <div className="h-10 w-10 shrink-0"></div>
+                                        {activeTab === 'channel-specific' && <div className="h-10 w-10 shrink-0"></div>}
                                         <div className="h-10 w-10 shrink-0"></div>
                                         <div className="h-10 w-px"></div>
                                         <div className="h-10 w-12 shrink-0"></div>
@@ -485,6 +506,7 @@ export default function ProductInformation() {
                           </div>
                         )
                       })}
+
                     </div>
                   </>
                 )}

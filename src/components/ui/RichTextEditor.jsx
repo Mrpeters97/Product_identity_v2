@@ -240,15 +240,20 @@ export default function RichTextEditor({ value, onChange, placeholder, disabled 
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="flex-1 p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+        className="flex-1 p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
         style={{
           fontFamily: 'var(--typography-font-family-font-sans, Inter)',
           fontSize: 'var(--typography-base-sizes-small-font-size, 14px)',
+          fontStyle: 'normal',
+          fontWeight: 'var(--font-weight-normal, 400)',
           lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
           minHeight: '300px',
-          backgroundColor: disabled ? '#F4F4F5' : 'white',
-          color: disabled ? 'var(--base-muted-foreground, #71717A)' : 'inherit',
+          backgroundColor: 'white',
+          color: disabled ? '#71717A' : 'inherit',
           cursor: disabled ? 'default' : 'text',
+          overflow: disabled ? 'hidden' : 'auto',
+          textOverflow: disabled ? 'ellipsis' : 'unset',
+          whiteSpace: disabled ? 'nowrap' : 'pre-wrap',
         }}
       />
     </div>

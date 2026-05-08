@@ -10,16 +10,16 @@ const BADGE_TEXT = {
   'channel-local': 'C-L',
 };
 
-export default function AttributeBadge({ differsOn, diffLabels }) {
+export default function AttributeBadge({ differsOn, diffLabels, ...rest }) {
   if (!differsOn) {
-    return <div className="w-12 h-10 shrink-0" aria-hidden="true"></div>;
+    return <div className="w-12 h-12 shrink-0" aria-hidden="true"></div>;
   }
 
   const badgeText = BADGE_TEXT[differsOn] || '';
   const tooltipText = diffLabels[differsOn] || '';
 
   return (
-    <div className="w-12 h-10 shrink-0 flex items-center justify-start">
+    <div className="w-12 h-6 shrink-0 flex items-center justify-center" data-tour="attribute-badge" {...rest}>
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge 
