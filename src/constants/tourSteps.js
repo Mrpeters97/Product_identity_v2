@@ -19,8 +19,8 @@ export const TOUR_STEPS = [
   {
     id: 'variant-selector',
     target: 'variant-selector',
-    title: 'Select variant + channel + language',
-    description: 'Select the product variant, channel, and language combination to adjust the specific product information.',
+    title: 'Select variant + language',
+    description: 'Select the product variant and language combination to adjust the specific product information.',
     dialogSide: 'bottom',
     spotlightPadding: 12,
   },

@@ -21,7 +21,7 @@ export default function CopyToChannelsAction({ field, onCopyConfirm, disabled, i
   const [isOpen, setIsOpen] = useState(false);
 
   const handleConfirm = () => {
-    onCopyConfirm(field, 'channels');
+    onCopyConfirm(field, 'variants');
     setIsOpen(false);
   };
 
@@ -46,7 +46,7 @@ export default function CopyToChannelsAction({ field, onCopyConfirm, disabled, i
         <DialogHeader>
           <DialogTitle>Copy value</DialogTitle>
           <DialogDescription>
-            Directly copy this value to other channels. Existing values will be overwritten and this action cannot be undone.
+            Directly copy this value to all variants. Existing values will be overwritten and this action cannot be undone.
           </DialogDescription>
         </DialogHeader>
 
@@ -55,7 +55,7 @@ export default function CopyToChannelsAction({ field, onCopyConfirm, disabled, i
             Cancel
           </Button>
           <Button onClick={handleConfirm} className="gap-[var(--Gap-2,8px)] rounded-[var(--border-radius-md,6px)] bg-[var(--base-foreground,#18181B)] px-[var(--Gap-4,16px)] py-[var(--Gap-2-5,10px)] text-[#FAFAFA] hover:bg-[var(--base-foreground,#18181B)]/90">
-            Copy to channels
+            Copy to variants
             <ClipboardIconWhite />
           </Button>
         </DialogFooter>
